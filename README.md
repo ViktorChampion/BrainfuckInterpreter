@@ -1,2 +1,2 @@
-# *Матадора
-Brainfuck Interpreter
+#Brainfuck Interpreter
+**М**
