@@ -1,2 +1,2 @@
-#Brainfuck Interpreter
+# Brainfuck Interpreter
 **М**
