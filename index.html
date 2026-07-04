@@ -432,7 +432,8 @@
             examples: {
                 hello: "Hello World!",
                 add: "Adding two digits (1+2)",
-                cat: "Cat program (Echo input)"
+                cat: "Cat program (Echo input)",
+                sixseven: "SIXSEVEN"
             },
             hints: [
                 { cmd: '>', desc: 'Move pointer right' },
@@ -466,7 +467,8 @@
             examples: {
                 hello: "Привет, мир! (Hello World)",
                 add: "Сложение двух цифр (1+2)",
-                cat: "Программа-эхо (Вывод ввода)"
+                cat: "Программа-эхо (Вывод ввода)",
+                sixseven: "SIXSEVEN"
             },
             hints: [
                 { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -511,6 +513,10 @@
         cat: {
             code: ",[.,]",
             input: "Brainfuck"
+        },
+        sixseven: {
+            code: "++++++++++[->++++++++<]>[->+>+>+>+>+>+<<<<<<]>+++.>-------.>++++++++.<<.>>>-----------.>++++++.<.>>--.",
+            input: "SIXSEVEN"
         }
     };
 
@@ -841,7 +847,6 @@
 
     function stepBackward() {
         if (history.length === 0) return;
-        
         isPaused = true;
         clearInterval(timer);
 
@@ -920,7 +925,7 @@
         select.innerHTML += `<option value="hello">${t.examples.hello}</option>`;
         select.innerHTML += `<option value="add">${t.examples.add}</option>`;
         select.innerHTML += `<option value="cat">${t.examples.cat}</option>`;
-        
+        select.innerHTML += `<option value="sixseven">${t.examples.sixseven}</option>`;
         select.value = selectedValue;
     }
 
