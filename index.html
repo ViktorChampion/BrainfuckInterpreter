@@ -433,7 +433,8 @@
                 hello: "Hello World!",
                 add: "Adding two digits (1+2)",
                 cat: "Cat program (Echo input)",
-                sixseven: "SIXSEVEN"
+                sixseven: "SIXSEVEN",
+                loopdoub: "Looping Doubler"
             },
             hints: [
                 { cmd: '>', desc: 'Move pointer right' },
@@ -468,7 +469,8 @@
                 hello: "Привет, мир! (Hello World)",
                 add: "Сложение двух цифр (1+2)",
                 cat: "Программа-эхо (Вывод ввода)",
-                sixseven: "SIXSEVEN"
+                sixseven: "SIXSEVEN",
+                loopdoub: "Циклический удвоитель"
             },
             hints: [
                 { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -504,7 +506,7 @@
     const bfkExamples = {
         hello: {
             code: "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
-            input: ""
+            input: "Hello"
         },
         add: {
             code: ",>++++++[<-------->-],>++++++[<-------->-]<[->+<]>.+",
@@ -517,6 +519,10 @@
         sixseven: {
             code: "++++++++++[->++++++++<]>[->+>+>+>+>+>+<<<<<<]>+++.>-------.>++++++++.<<.>>>-----------.>++++++.<.>>--.",
             input: "SIXSEVEN"
+        },
+        loopdoub: {
+            code: "+[>,]<[-<]>[+..>]",
+            input: "Puk Puk"
         }
     };
 
@@ -764,7 +770,6 @@
                 }
                 break;
         }
-
         // Обновляем индекс следующей команды для синхронизации подсветки
         if (codeIndex < cleanCode.length) {
             rawCodeIndex = mapToRawIndex[codeIndex];
@@ -926,6 +931,7 @@
         select.innerHTML += `<option value="add">${t.examples.add}</option>`;
         select.innerHTML += `<option value="cat">${t.examples.cat}</option>`;
         select.innerHTML += `<option value="sixseven">${t.examples.sixseven}</option>`;
+        select.innerHTML += `<option value="loopdoub">${t.examples.loopdoub}</option>`;
         select.value = selectedValue;
     }
 
