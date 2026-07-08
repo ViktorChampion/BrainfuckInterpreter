@@ -743,7 +743,7 @@
                     memory[ptr] = inputs.charCodeAt(inputIndex) % 256;
                     inputIndex++;
                 } else {
-                    memory[ptr] = 0; // Стандартное поведение при конце потока ввода
+                    memory[ptr] = 0;
                 }
                 codeIndex++;
                 break;
@@ -759,7 +759,7 @@
                         if (cleanCode[codeIndex] === '[') count++;
                         if (cleanCode[codeIndex] === ']') count--;
                     }
-                    codeIndex++; // Перемещаем указатель на команду ЗА закрывающей скобкой
+                    codeIndex++; // Перемещаем ЗА закрывающую скобку
                 } else {
                     codeIndex++; // Идем внутрь цикла
                 }
@@ -776,13 +776,14 @@
                         if (cleanCode[codeIndex] === ']') count++;
                         if (cleanCode[codeIndex] === '[') count--;
                     }
-                    codeIndex++; // Перемещаем указатель на команду ЗА открывающей скобкой (внутрь цикла)
+                    // Оставляем codeIndex строго на символе '['. 
+                    // На следующем шаге switch корректно обработает его.
                 } else {
                     codeIndex++; // Выходим из цикла, идем к следующей команде после ']'
                 }
                 break;
             default:
-                codeIndex++; // Пропуск любых невалидных символов, если они попали в cleanCode
+                codeIndex++;
                 break;
         }
 
