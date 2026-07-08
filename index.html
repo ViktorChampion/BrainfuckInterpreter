@@ -717,7 +717,6 @@
         rawCodeIndex = mapToRawIndex[codeIndex];
         const cmd = cleanCode[codeIndex];
         const inputs = document.getElementById('inputBuffer').value;
-
         switch (cmd) {
             case '>':
                 if (ptr < TAPE_SIZE - 1) ptr++;
@@ -744,7 +743,7 @@
                     memory[ptr] = inputs.charCodeAt(inputIndex) % 256;
                     inputIndex++;
                 } else {
-                    memory[ptr] = 0;
+                    memory[ptr] = 0; // Стандартное поведение при конце потока ввода
                 }
                 codeIndex++;
                 break;
@@ -753,13 +752,16 @@
                     let count = 1;
                     while (count > 0) {
                         codeIndex++;
-                        if (codeIndex >= cleanCode.length) { stopCode(); return; }
+                        if (codeIndex >= cleanCode.length) { 
+                            stopCode(); 
+                            return; 
+                        }
                         if (cleanCode[codeIndex] === '[') count++;
                         if (cleanCode[codeIndex] === ']') count--;
                     }
-                    codeIndex++;
+                    codeIndex++; // Перемещаем указатель на команду ЗА закрывающей скобкой
                 } else {
-                    codeIndex++;
+                    codeIndex++; // Идем внутрь цикла
                 }
                 break;
             case ']':
@@ -767,15 +769,23 @@
                     let count = 1;
                     while (count > 0) {
                         codeIndex--;
-                        if (codeIndex < 0) { stopCode(); return; }
+                        if (codeIndex < 0) { 
+                            stopCode(); 
+                            return; 
+                        }
                         if (cleanCode[codeIndex] === ']') count++;
                         if (cleanCode[codeIndex] === '[') count--;
                     }
+                    codeIndex++; // Перемещаем указатель на команду ЗА открывающей скобкой (внутрь цикла)
                 } else {
-                    codeIndex++;
+                    codeIndex++; // Выходим из цикла, идем к следующей команде после ']'
                 }
                 break;
+            default:
+                codeIndex++; // Пропуск любых невалидных символов, если они попали в cleanCode
+                break;
         }
+
         // Обновляем индекс следующей команды для синхронизации подсветки
         if (codeIndex < cleanCode.length) {
             rawCodeIndex = mapToRawIndex[codeIndex];
