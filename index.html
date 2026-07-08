@@ -55,7 +55,6 @@
             font-weight: bold;
         }
 
-        /* Лента ячеек памяти */
         .tape-container {
             overflow-x: auto;
             background: #181825;
@@ -63,18 +62,20 @@
             border-radius: 8px;
             margin-bottom: 20px;
             border: 1px solid var(--border-color);
+            position: relative;
         }
 
         .tape {
             display: flex;
             gap: 8px;
             position: relative;
-            padding-bottom: 25px; /* Место для стрелочки */
+            padding-bottom: 25px;
+            padding-top: 30px;
         }
 
         .cell {
-            min-width: 50px;
-            height: 50px;
+            min-width: 55px;
+            height: 65px;
             background: var(--panel-bg);
             border: 2px solid var(--border-color);
             border-radius: 6px;
@@ -85,6 +86,7 @@
             font-size: 14px;
             position: relative;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .cell.active {
@@ -92,28 +94,57 @@
             box-shadow: 0 0 10px rgba(243, 139, 168, 0.5);
         }
 
-        .cell-index {
-            font-size: 10px;
+        .cell-top {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 6px;
+            font-size: 9px;
             color: #6c7086;
             position: absolute;
             top: 2px;
+            left: 0;
+            box-sizing: border-box;
+        }
+
+        .cell-index {
+            font-weight: bold;
+        }
+
+        .cell-ascii {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 10px;
+            background: rgba(137, 180, 250, 0.1);
+            padding: 0 4px;
+            border-radius: 3px;
+            max-width: 25px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cell-ascii.non-printable {
+            color: #f9e2af;
+            background: rgba(249, 226, 175, 0.15);
         }
 
         .cell-value {
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 12px;
+            font-size: 16px;
         }
 
         .pointer-arrow {
             position: absolute;
-            bottom: 0;
+            bottom: -2px;
             font-size: 20px;
             color: var(--active-color);
             transition: left 0.2s ease;
             transform: translateX(-50%);
+            z-index: 5;
         }
 
-        /* Редактор и код */
         .workspace {
             display: grid;
             grid-template-columns: 1fr;
@@ -129,29 +160,6 @@
             overflow: hidden;
         }
 
-        /* Скрытый слой для подсветки активной команды */
-        .highlight-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            font-family: monospace;
-            font-size: 16px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: transparent;
-            pointer-events: none;
-        }
-
-        .highlight-layer .active-cmd {
-            background-color: rgba(137, 180, 250, 0.4);
-            border-radius: 3px;
-            color: transparent;
-        }
-
         textarea {
             width: 100%;
             height: 150px;
@@ -160,15 +168,15 @@
             border: none;
             padding: 10px;
             box-sizing: border-box;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             font-size: 16px;
             resize: vertical;
             outline: none;
             position: relative;
             z-index: 1;
+            line-height: 1.5;
         }
 
-        /* Панель управления */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -207,7 +215,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Идеально ровный Ввод и Вывод */
         .io-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -228,7 +235,7 @@
 
         .io-field textarea {
             width: 100%;
-            height: 80px; /* Фиксированная одинаковая высота */
+            height: 80px;
             background: #181825;
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -237,14 +244,14 @@
             box-sizing: border-box;
             font-family: monospace;
             font-size: 14px;
-            resize: none; /* Запрещаем растягивать вручную, чтобы не ломать симметрию */
+            resize: none;
             outline: none;
             transition: border-color 0.2s;
         }
         .io-field textarea:focus {
             border-color: var(--accent-color);
         }
-        /* Подсказки */
+
         .hints {
             background: #181825;
             padding: 15px;
@@ -268,7 +275,8 @@
             color: var(--active-color);
             font-weight: bold;
         }
-                .ascii-group {
+
+        .ascii-group {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -327,6 +335,16 @@
             font-size: 15px;
         }
 
+        .execution-status {
+            display: none;
+            color: var(--accent-color);
+            font-size: 14px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .execution-status.active {
+            display: inline;
+        }
     </style>
 </head>
 <body>
@@ -336,29 +354,21 @@
         <h1 id="title">Brainfuck Visualizer</h1>
         <div style="display: flex; gap: 10px; align-items: center;">
             <select id="exampleSelect" onchange="loadExample()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
-                <!-- Варианты добавятся через JavaScript -->
             </select>
             <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">RU</button>
         </div>
     </header>
 
-
-    <!-- Визуальная лента -->
     <div class="tape-container">
-        <div class="tape" id="tape">
-            <!-- Ячейки сгенерируются через JS -->
-        </div>
+        <div class="tape" id="tape"></div>
     </div>
 
-    <!-- Редактор кода -->
     <div class="workspace">
         <div class="code-container">
-            <div class="highlight-layer" id="highlightLayer"></div>
-            <textarea id="code" oninput="syncHighlight()" placeholder="Введите Brainfuck код сюда... Например: ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."></textarea>
+            <textarea id="code" placeholder="Введите Brainfuck код сюда..."></textarea>
         </div>
     </div>
 
-    <!-- Кнопки управления -->
     <div class="controls">
         <button class="btn btn-run" id="btnRun" onclick="runCode()">Run</button>
         <button class="btn btn-wait" id="btnWait" onclick="waitCode()" disabled>Wait</button>
@@ -373,10 +383,9 @@
             <input type="range" id="speed" min="0" max="10" value="5" onchange="updateSpeed()">
             <span id="speedVal">5</span>
         </div>
+        <span class="execution-status" id="execStatus">⏳ Выполнение...</span>
     </div>
 
-
-    <!-- Ввод / Вывод -->
     <div class="io-panel">
         <div class="io-field">
             <label id="labelInput">Ввод (для команды ','):</label>
@@ -391,24 +400,19 @@
         </div>
     </div>
 
-    <!-- Панель подсказок -->
     <div class="hints">
         <h3 id="hintsTitle">Справка по командам</h3>
-        <div class="hint-grid" id="hintGrid">
-            <!-- Подсказки зависят от языка -->
-        </div>
+        <div class="hint-grid" id="hintGrid"></div>
     </div>
 </div>
-    <!-- Панель ASCII таблицы -->
-    <div class="hints" style="margin-top: 20px;">
-        <h3 id="asciiTitle">Таблица ASCII (0-127)</h3>
-        <div id="asciiContainer">
-            <!-- Группы сгенерируются через JavaScript -->
-        </div>
-    </div>
+
+<div class="hints" style="margin-top: 20px; max-width: 900px; width: 100%; box-sizing: border-box;">
+    <h3 id="asciiTitle">Таблица ASCII (0-127)</h3>
+    <div id="asciiContainer"></div>
+</div>
 
 <script>
-    // Обновленные настройки и локализация
+    // === НАСТРОЙКИ И ЛОКАЛИЗАЦИЯ ===
     let currentLang = 'en';
     const translations = {
         en: {
@@ -429,6 +433,7 @@
             btnCopy: "Copy",
             btnCopied: "Copied!",
             examplePlaceholder: "— Choose Example —",
+            execStatus: "⏳ Running...",
             examples: {
                 hello: "Hello World!",
                 add: "Adding two digits (1+2)",
@@ -466,6 +471,7 @@
             btnCopy: "Копировать",
             btnCopied: "Скопировано!",
             examplePlaceholder: "— Выберите пример —",
+            execStatus: "⏳ Выполнение...",
             examples: {
                 hello: "Привет, мир! (Hello World)",
                 add: "Сложение двух цифр (1+2)",
@@ -487,24 +493,30 @@
         }
     };
 
-    // Состояние интерпретатора
+    // === СОСТОЯНИЕ ===
     const TAPE_SIZE = 1000;
     let memory = new Array(TAPE_SIZE).fill(0);
     let ptr = 0;
-    let codeIndex = 0;      // Индекс в отфильтрованном массиве команд cleanCode
-    let rawCodeIndex = -1;  // Индекс в исходном тексте textarea для подсветки
+    let codeIndex = 0;
+    let rawCodeIndex = -1;
     let isRunning = false;
     let isPaused = false;
+    let isStopped = false;
     let timer = null;
     let inputIndex = 0;
 
-    // Массивы для обработанного кода и маппинга индексов
     let cleanCode = "";
     let mapToRawIndex = [];
-
-    // История для шага назад (- Step)
     let history = [];
-    // База данных примеров кода Brainfuck
+
+    const nonPrintableNames = {
+        0: 'NUL', 1: 'SOH', 2: 'STX', 3: 'ETX', 4: 'EOT', 5: 'ENQ', 6: 'ACK',
+        7: 'BEL', 8: 'BS', 9: 'TAB', 10: 'LF', 11: 'VT', 12: 'FF', 13: 'CR',
+        14: 'SO', 15: 'SI', 16: 'DLE', 17: 'DC1', 18: 'DC2', 19: 'DC3', 20: 'DC4',
+        21: 'NAK', 22: 'SYN', 23: 'ETB', 24: 'CAN', 25: 'EM', 26: 'SUB', 27: 'ESC',
+        28: 'FS', 29: 'GS', 30: 'RS', 31: 'US', 32: 'SP', 127: 'DEL'
+    };
+
     const bfkExamples = {
         hello: {
             code: "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
@@ -523,7 +535,7 @@
             input: "SIXSEVEN"
         },
         loopdoub: {
-            code: "+        adds 1 to enter the loop (прибавляет 1 для входа в цикл)\n[>,]     reads all characters and writes them into cells (читает все символы и записывает в ячейки)\n<[-<]    subtracts 1 from all cells to get rid of cell 0 (вычитает 1 во всех ячейках чтобы избавиться от ячейки 0)\n>[+..>]  adds 1, prints 2 times and moves on (прибавляет 1, печатает 2 раза и идет дальше)",
+            code: "+        adds 1 to enter the loop\n[>,]     reads all characters and writes them into cells\n<[-<]    subtracts 1 from all cells to get rid of cell 0\n>[+..>]  adds 1, prints 2 times and moves on",
             input: "Puk Puk"
         },
         thisurl: {
@@ -532,17 +544,14 @@
         }
     };
 
-    // Инициализация при загрузке
+    // === ИНИЦИАЛИЗАЦИЯ ===
     window.onload = () => {
         switchLanguage('en');
         initTape();
         updateUI();
-        
-        // Пересчитываем положение стрелочки при изменении размеров экрана
         window.addEventListener('resize', () => moveArrowVisual(ptr));
         initAsciiTable();
         updateExamplesDropdown();
-
     };
 
     function initTape() {
@@ -552,7 +561,13 @@
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.id = `cell-${i}`;
-            cell.innerHTML = `<span class="cell-index">${i}</span><span class="cell-value" id="val-${i}">0</span>`;
+            cell.innerHTML = `
+                <div class="cell-top">
+                    <span class="cell-index">${i}</span>
+                    <span class="cell-ascii" id="ascii-${i}">␣</span>
+                </div>
+                <span class="cell-value" id="val-${i}">0</span>
+            `;
             tapeEl.appendChild(cell);
         }
         const arrow = document.createElement('div');
@@ -563,7 +578,7 @@
         setTimeout(() => moveArrowVisual(0), 50);
     }
 
-    // Локализация
+    // === ЛОКАЛИЗАЦИЯ ===
     function toggleLanguage() {
         switchLanguage(currentLang === 'en' ? 'ru' : 'en');
     }
@@ -572,7 +587,6 @@
         currentLang = lang;
         const t = translations[lang];
         
-        // Перевод шапки и лейблов
         document.getElementById('langBtn').innerText = lang === 'en' ? 'RU' : 'EN';
         document.getElementById('title').innerText = t.title;
         document.getElementById('hintsTitle').innerText = t.hintsTitle;
@@ -583,11 +597,9 @@
             document.getElementById('asciiTitle').innerText = lang === 'en' ? "ASCII Table (0-127)" : "Таблица ASCII (0-127)";
         }
         
-        // Перевод плейсхолдеров
         document.getElementById('code').placeholder = t.placeholder;
         document.getElementById('inputBuffer').placeholder = t.placeholderInput;
 
-        // Перевод всех кнопок управления
         document.getElementById('btnRun').innerText = t.btnRun;
         document.getElementById('btnWait').innerText = t.btnWait;
         document.getElementById('btnContinue').innerText = t.btnContinue;
@@ -596,16 +608,15 @@
         document.getElementById('btnStop').innerText = t.btnStop;
         document.getElementById('btnClear').innerText = t.btnClear;
         
-        // Кнопку копирования переводим, только если она сейчас не в состоянии "Copied!"
         const copyBtn = document.getElementById('btnCopy');
         if (copyBtn.innerText !== translations.en.btnCopied && copyBtn.innerText !== translations.ru.btnCopied) {
             copyBtn.innerText = t.btnCopy;
         }
 
-        // Перерисовка выпадающего списка примеров
+        document.getElementById('execStatus').innerText = t.execStatus;
+
         updateExamplesDropdown();
 
-        // Перевод нижней таблицы подсказок
         const grid = document.getElementById('hintGrid');
         grid.innerHTML = '';
         t.hints.forEach(h => {
@@ -615,12 +626,49 @@
         if (typeof initAsciiTable === 'function') initAsciiTable();
     }
 
-    // Визуальное обновление интерфейса и кнопок
+    // === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ===
     function updateUI() {
-        // Синхронизация значений памяти
         for (let i = 0; i < TAPE_SIZE; i++) {
             const cell = document.getElementById(`cell-${i}`);
-            document.getElementById(`val-${i}`).innerText = memory[i];
+            const val = memory[i];
+            document.getElementById(`val-${i}`).innerText = val;
+            
+            const asciiEl = document.getElementById(`ascii-${i}`);
+            if (asciiEl) {
+                let displayChar;
+                let isPrintable = true;
+                
+                if (val >= 32 && val <= 126) {
+                    displayChar = String.fromCharCode(val);
+                } else if (val === 10) {
+                    displayChar = 'LF';
+                    isPrintable = false;
+                } else if (val === 13) {
+                    displayChar = 'CR';
+                    isPrintable = false;
+                } else if (val === 9) {
+                    displayChar = 'TAB';
+                    isPrintable = false;
+                } else if (val === 32) {
+                    displayChar = 'SP';
+                    isPrintable = false;
+                } else if (val === 0) {
+                    displayChar = 'NUL';
+                    isPrintable = false;
+                } else if (val === 127) {
+                    displayChar = 'DEL';
+                    isPrintable = false;
+                } else if (val < 32) {
+                    displayChar = nonPrintableNames[val] || `^${String.fromCharCode(64 + val)}`;
+                    isPrintable = false;
+                } else {
+                    displayChar = String.fromCharCode(val);
+                }
+                
+                asciiEl.textContent = displayChar;
+                asciiEl.className = 'cell-ascii' + (isPrintable ? '' : ' non-printable');
+            }
+            
             if (i === ptr) {
                 cell.classList.add('active');
             } else {
@@ -628,15 +676,20 @@
             }
         }
         moveArrowVisual(ptr);
-        syncHighlight();
 
-        // Корректное переключение доступности кнопок (убирает залипание)
         document.getElementById('btnRun').disabled = isRunning && !isPaused;
         document.getElementById('btnWait').disabled = !isRunning || isPaused;
         document.getElementById('btnContinue').disabled = !isRunning || !isPaused;
         document.getElementById('btnStepFwd').disabled = isRunning && !isPaused;
         document.getElementById('btnStepBwd').disabled = history.length === 0;
         document.getElementById('code').disabled = isRunning;
+        
+        const statusEl = document.getElementById('execStatus');
+        if (isRunning && !isPaused && parseInt(document.getElementById('speed').value) === 0) {
+            statusEl.classList.add('active');
+        } else {
+            statusEl.classList.remove('active');
+        }
     }
 
     function moveArrowVisual(index) {
@@ -644,20 +697,6 @@
         const arrow = document.getElementById('arrow');
         if (cell && arrow) {
             arrow.style.left = `${cell.offsetLeft + (cell.offsetWidth / 2)}px`;
-        }
-    }
-
-    function syncHighlight() {
-        const codeText = document.getElementById('code').value;
-        const layer = document.getElementById('highlightLayer');
-        
-        if (isRunning && rawCodeIndex >= 0 && rawCodeIndex < codeText.length) {
-            const before = codeText.substring(0, rawCodeIndex);
-            const char = codeText.charAt(rawCodeIndex);
-            const after = codeText.substring(rawCodeIndex + 1);
-            layer.innerHTML = escapeHTML(before) + `<span class="active-cmd">${escapeHTML(char)}</span>` + escapeHTML(after);
-        } else {
-            layer.innerHTML = escapeHTML(codeText);
         }
     }
 
@@ -671,14 +710,12 @@
         
         if (isRunning && !isPaused && speed > 0) {
             clearInterval(timer);
-            // Чем выше ползунок, тем меньше задержка (быстрее работа)
-            // 1 = 1000мс (медленно), 10 = 15мс (очень быстро)
             const ms = Math.round(1000 / Math.pow(speed, 1.8)); 
-            timer = setInterval(executeStep, ms);
+            timer = setInterval(() => executeStep(true), ms);
         }
+        updateUI();
     }
 
-    // Сохранение состояния для Шага Назад
     function saveHistory() {
         history.push({
             memory: [...memory],
@@ -690,7 +727,6 @@
         });
     }
 
-    // Подготовка кода к выполнению
     function prepareExecution() {
         const rawCode = document.getElementById('code').value;
         const validCmds = ['>', '<', '+', '-', '.', ',', '[', ']'];
@@ -706,17 +742,18 @@
         }
     }
 
-    // Выполнение одной команды
-    function executeStep() {
+    // === ОСНОВНАЯ ЛОГИКА ===
+    function executeStep(updateUI_ = true) {
         if (codeIndex >= cleanCode.length) {
             stopCode();
-            return;
+            return false;
         }
 
-        saveHistory();
+        if (updateUI_) saveHistory();
         rawCodeIndex = mapToRawIndex[codeIndex];
         const cmd = cleanCode[codeIndex];
         const inputs = document.getElementById('inputBuffer').value;
+        
         switch (cmd) {
             case '>':
                 if (ptr < TAPE_SIZE - 1) ptr++;
@@ -754,14 +791,14 @@
                         codeIndex++;
                         if (codeIndex >= cleanCode.length) { 
                             stopCode(); 
-                            return; 
+                            return false; 
                         }
                         if (cleanCode[codeIndex] === '[') count++;
                         if (cleanCode[codeIndex] === ']') count--;
                     }
-                    codeIndex++; // Перемещаем ЗА закрывающую скобку
+                    codeIndex++;
                 } else {
-                    codeIndex++; // Идем внутрь цикла
+                    codeIndex++;
                 }
                 break;
             case ']':
@@ -771,15 +808,13 @@
                         codeIndex--;
                         if (codeIndex < 0) { 
                             stopCode(); 
-                            return; 
+                            return false; 
                         }
                         if (cleanCode[codeIndex] === ']') count++;
                         if (cleanCode[codeIndex] === '[') count--;
                     }
-                    // Оставляем codeIndex строго на символе '['. 
-                    // На следующем шаге switch корректно обработает его.
                 } else {
-                    codeIndex++; // Выходим из цикла, идем к следующей команде после ']'
+                    codeIndex++;
                 }
                 break;
             default:
@@ -787,16 +822,36 @@
                 break;
         }
 
-        // Обновляем индекс следующей команды для синхронизации подсветки
-        if (codeIndex < cleanCode.length) {
+        if (updateUI_ && codeIndex < cleanCode.length) {
             rawCodeIndex = mapToRawIndex[codeIndex];
         }
 
-        updateUI();
+        if (updateUI_) {
+            updateUI();
+        }
+        return true;
     }
 
-    // Управление
-    function runCode() {
+    function executeAllStepsInstant() {
+        while (isRunning && !isPaused && !isStopped && codeIndex < cleanCode.length) {
+            executeStep(false);
+        }
+        
+        if (codeIndex >= cleanCode.length || isStopped) {
+            if (history.length === 0 || history[history.length - 1].codeIndex !== codeIndex) {
+                saveHistory();
+            }
+        }
+        
+        updateUI();
+        
+        if (codeIndex >= cleanCode.length) {
+            stopCode();
+        }
+    }
+
+    // === УПРАВЛЕНИЕ ===
+    async function runCode() {
         if (!isRunning) {
             prepareExecution();
             if (cleanCode.length === 0) return;
@@ -804,27 +859,24 @@
             memory.fill(0);
             ptr = 0;
             codeIndex = 0;
-            rawCodeIndex = mapToRawIndex;
+            rawCodeIndex = mapToRawIndex[0] || -1;
             inputIndex = 0;
             history = [];
             document.getElementById('output').value = "";
             isRunning = true;
+            isStopped = false;
         }
         
         isPaused = false;
         const speed = parseInt(document.getElementById('speed').value);
         
         if (speed === 0) {
-            // Мгновенный цикл
             clearInterval(timer);
-            while (isRunning && !isPaused && codeIndex < cleanCode.length) {
-                executeStep();
-            }
+            executeAllStepsInstant();
         } else {
             clearInterval(timer);
-            // Рассчитываем ускоренную задержку по той же формуле
-            const ms = Math.round(1000 / Math.pow(speed, 1.8)); 
-            timer = setInterval(executeStep, ms);
+            const ms = Math.round(1000 / Math.pow(speed, 1.8));
+            timer = setInterval(() => executeStep(true), ms);
             updateUI();
         }
     }
@@ -842,9 +894,12 @@
     function stopCode() {
         isRunning = false;
         isPaused = false;
+        isStopped = true;
         clearInterval(timer);
-        codeIndex = 0;
-        rawCodeIndex = -1;
+        if (codeIndex >= cleanCode.length) {
+            codeIndex = 0;
+            rawCodeIndex = -1;
+        }
         updateUI();
     }
 
@@ -855,16 +910,17 @@
             memory.fill(0);
             ptr = 0;
             codeIndex = 0;
-            rawCodeIndex = mapToRawIndex[0];
+            rawCodeIndex = mapToRawIndex[0] || -1;
             inputIndex = 0;
             history = [];
             document.getElementById('output').value = "";
             isRunning = true;
+            isStopped = false;
         }
         
         isPaused = true;
         clearInterval(timer);
-        executeStep();
+        executeStep(true);
     }
 
     function stepBackward() {
@@ -882,26 +938,25 @@
 
         updateUI();
     }
-        function initAsciiTable() {
+
+    // === ASCII ТАБЛИЦА ===
+    function initAsciiTable() {
         const container = document.getElementById('asciiContainer');
-        // Сохраняем состояние открытых групп, чтобы они не захлопывались при смене языка
         const openGroups = Array.from(container.querySelectorAll('.ascii-group.open')).map(g => g.dataset.id);
         
         container.innerHTML = '';
 
-        // Описание диапазонов ASCII
         const groups = [
-            { id: 'ctrl', min: 0, max: 31, nameRu: '0-31: Управляющие символы (Null, Enter, Tab...)', nameEn: '0-31: Control Characters (Null, Enter, Tab...)' },
-            { id: 'space_punct', min: 32, max: 47, nameRu: '32-47: Пробел и Знаки препинания ( , !, ", #...)', nameEn: '32-47: Space & Punctuation ( , !, ", #...)' },
-            { id: 'digits', min: 48, max: 57, nameRu: '48-57: Цифры (0-9)', nameEn: '48-57: Digits (0-9)' },
-            { id: 'punct2', min: 58, max: 64, nameRu: '58-64: Знаки препинания (:, ;, <, =, >...)', nameEn: '58-64: Punctuation (:, ;, <, =, >...)' },
-            { id: 'uppercase', min: 65, max: 90, nameRu: '65-90: Заглавные латинские буквы (A-Z)', nameEn: '65-90: Uppercase Letters (A-Z)' },
-            { id: 'punct3', min: 91, max: 96, nameRu: '91-96: Знаки препинания ([, \\, ], ^...)', nameEn: '91-96: Punctuation ([, \\, ], ^...)' },
-            { id: 'lowercase', min: 97, max: 122, nameRu: '97-122: Строчные латинские буквы (a-z)', nameEn: '97-122: Lowercase Letters (a-z)' },
-            { id: 'punct4', min: 123, max: 127, nameRu: '123-127: Спецсимволы ({, |, }, ~, Delete)', nameEn: '123-127: Special Characters ({, |, }, ~, Delete)' }
+            { id: 'ctrl', min: 0, max: 31, nameRu: '0-31: Управляющие символы', nameEn: '0-31: Control Characters' },
+            { id: 'space_punct', min: 32, max: 47, nameRu: '32-47: Пробел и Знаки препинания', nameEn: '32-47: Space & Punctuation' },
+            { id: 'digits', min: 48, max: 57, nameRu: '48-57: Цифры', nameEn: '48-57: Digits' },
+            { id: 'punct2', min: 58, max: 64, nameRu: '58-64: Знаки препинания', nameEn: '58-64: Punctuation' },
+            { id: 'uppercase', min: 65, max: 90, nameRu: '65-90: Заглавные латинские буквы', nameEn: '65-90: Uppercase Letters' },
+            { id: 'punct3', min: 91, max: 96, nameRu: '91-96: Знаки препинания', nameEn: '91-96: Punctuation' },
+            { id: 'lowercase', min: 97, max: 122, nameRu: '97-122: Строчные латинские буквы', nameEn: '97-122: Lowercase Letters' },
+            { id: 'punct4', min: 123, max: 127, nameRu: '123-127: Спецсимволы', nameEn: '123-127: Special Characters' }
         ];
 
-        // Названия для невидимых/управляющих символов
         const specialNames = {
             0: 'NUL', 7: 'BEL', 8: 'BS', 9: 'TAB', 10: 'LF', 13: 'CR', 27: 'ESC', 32: 'Space', 127: 'DEL'
         };
@@ -937,10 +992,11 @@
             container.appendChild(groupEl);
         });
     }
-    // Динамическое обновление выпадающего списка примеров
+
+    // === ПРИМЕРЫ ===
     function updateExamplesDropdown() {
         const select = document.getElementById('exampleSelect');
-        const selectedValue = select.value; // Сохраняем выбранное значение при смене языка
+        const selectedValue = select.value;
         const t = translations[currentLang];
         
         select.innerHTML = `<option value="">${t.examplePlaceholder}</option>`;
@@ -953,21 +1009,19 @@
         select.value = selectedValue;
     }
 
-    // Загрузка выбранного примера в редактор
     function loadExample() {
         const exKey = document.getElementById('exampleSelect').value;
         if (!exKey || !bfkExamples[exKey]) return;
         
-        stopCode(); // Сбрасываем интерпретатор, если программа бежала
+        stopCode();
         
         document.getElementById('code').value = bfkExamples[exKey].code;
         document.getElementById('inputBuffer').value = bfkExamples[exKey].input;
         document.getElementById('output').value = "";
         
-        syncHighlight();
+        updateUI();
     }
 
-    // Полная очистка рабочей области
     function clearAll() {
         stopCode();
         document.getElementById('code').value = "";
@@ -975,14 +1029,12 @@
         document.getElementById('output').value = "";
         document.getElementById('exampleSelect').value = "";
         
-        // Сбрасываем память визуализатора
         memory.fill(0);
         ptr = 0;
         history = [];
         updateUI();
     }
 
-    // Идеальное копирование вывода в буфер обмена
     function copyOutput() {
         const outputText = document.getElementById('output').value;
         if (!outputText) return;
@@ -992,10 +1044,9 @@
             const originalText = translations[currentLang].btnCopy;
             
             copyBtn.innerText = translations[currentLang].btnCopied;
-            copyBtn.style.background = "#a6e3a1"; // Подсветим зелёным для перфекционизма
+            copyBtn.style.background = "#a6e3a1";
             copyBtn.style.color = "#11111b";
 
-            // Возвращаем исходный текст кнопки через 1.5 секунды
             setTimeout(() => {
                 copyBtn.innerText = originalText;
                 copyBtn.style.background = "";
