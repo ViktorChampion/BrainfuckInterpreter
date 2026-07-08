@@ -12,6 +12,7 @@
             --accent-color: #89b4fa;
             --active-color: #f38ba8;
             --border-color: #45475a;
+            --highlight-color: #f9e2af;
         }
 
         body {
@@ -160,6 +161,10 @@
             overflow: hidden;
         }
 
+        .code-wrapper {
+            position: relative;
+        }
+
         textarea {
             width: 100%;
             height: 150px;
@@ -175,6 +180,45 @@
             position: relative;
             z-index: 1;
             line-height: 1.5;
+        }
+
+        .code-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: transparent;
+            overflow: hidden;
+        }
+
+        .code-highlight .highlight-char {
+            background: rgba(249, 226, 175, 0.3);
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(249, 226, 175, 0.2);
+            display: inline;
+            padding: 0;
+            position: relative;
+        }
+
+        .code-highlight .highlight-char::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--highlight-color);
+            border-radius: 2px;
         }
 
         .controls {
@@ -345,6 +389,32 @@
         .execution-status.active {
             display: inline;
         }
+
+        .current-command-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #181825;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .current-command-info .cmd-char {
+            color: var(--active-color);
+            font-weight: bold;
+            font-size: 18px;
+            background: rgba(243, 139, 168, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .current-command-info .cmd-index {
+            color: #6c7086;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -365,7 +435,10 @@
 
     <div class="workspace">
         <div class="code-container">
-            <textarea id="code" placeholder="Введите Brainfuck код сюда..."></textarea>
+            <div class="code-wrapper">
+                <textarea id="code" placeholder="Введите Brainfuck код сюда..." onscroll="syncHighlightScroll()" oninput="updateCodeHighlight()"></textarea>
+                <div class="code-highlight" id="codeHighlight"></div>
+            </div>
         </div>
     </div>
 
@@ -377,6 +450,12 @@
         <button class="btn btn-step" id="btnStepBwd" onclick="stepBackward()" disabled>- Step</button>
         <button class="btn btn-stop" id="btnStop" onclick="stopCode()">Stop</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
+
+        <div class="current-command-info" id="commandInfo">
+            <span class="cmd-index" id="cmdIndex">—</span>
+            <span class="cmd-char" id="cmdChar">␣</span>
+            <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">ожидание</span>
+        </div>
 
         <div class="speed-control">
             <span id="labelSpeed">Скорость:</span>
@@ -434,6 +513,7 @@
             btnCopied: "Copied!",
             examplePlaceholder: "— Choose Example —",
             execStatus: "⏳ Running...",
+            cmdWaiting: "waiting",
             examples: {
                 hello: "Hello World!",
                 add: "Adding two digits (1+2)",
@@ -472,6 +552,7 @@
             btnCopied: "Скопировано!",
             examplePlaceholder: "— Выберите пример —",
             execStatus: "⏳ Выполнение...",
+            cmdWaiting: "ожидание",
             examples: {
                 hello: "Привет, мир! (Hello World)",
                 add: "Сложение двух цифр (1+2)",
@@ -552,6 +633,7 @@
         window.addEventListener('resize', () => moveArrowVisual(ptr));
         initAsciiTable();
         updateExamplesDropdown();
+        updateCodeHighlight();
     };
 
     function initTape() {
@@ -624,6 +706,56 @@
         });
         
         if (typeof initAsciiTable === 'function') initAsciiTable();
+        updateCommandInfo();
+    }
+
+    // === ПОДСВЕТКА КОДА ===
+    function updateCodeHighlight() {
+        const textarea = document.getElementById('code');
+        const highlight = document.getElementById('codeHighlight');
+        const code = textarea.value;
+        
+        let html = '';
+        for (let i = 0; i < code.length; i++) {
+            const char = code[i];
+            const escaped = char === ' ' ? '&nbsp;' : escapeHTML(char);
+            if (i === rawCodeIndex && isRunning && codeIndex < cleanCode.length) {
+                html += `<span class="highlight-char">${escaped}</span>`;
+            } else {
+                html += escaped;
+            }
+        }
+        highlight.innerHTML = html;
+    }
+
+    function syncHighlightScroll() {
+        const textarea = document.getElementById('code');
+        const highlight = document.getElementById('codeHighlight');
+        highlight.scrollTop = textarea.scrollTop;
+        highlight.scrollLeft = textarea.scrollLeft;
+    }
+
+    // === ОБНОВЛЕНИЕ ИНФОРМАЦИИ О КОМАНДЕ ===
+    function updateCommandInfo() {
+        const cmdIndexEl = document.getElementById('cmdIndex');
+        const cmdCharEl = document.getElementById('cmdChar');
+        const cmdDescEl = document.getElementById('cmdDesc');
+        const t = translations[currentLang];
+        
+        if (isRunning && codeIndex < cleanCode.length && rawCodeIndex >= 0) {
+            const cmd = cleanCode[codeIndex];
+            const rawPos = rawCodeIndex + 1;
+            cmdIndexEl.textContent = `#${rawPos}`;
+            cmdCharEl.textContent = cmd;
+            
+            // Найти описание команды
+            const hint = t.hints.find(h => h.cmd === cmd);
+            cmdDescEl.textContent = hint ? hint.desc : '';
+        } else {
+            cmdIndexEl.textContent = '—';
+            cmdCharEl.textContent = '␣';
+            cmdDescEl.textContent = t.cmdWaiting;
+        }
     }
 
     // === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ===
@@ -690,6 +822,9 @@
         } else {
             statusEl.classList.remove('active');
         }
+
+        updateCommandInfo();
+        updateCodeHighlight();
     }
 
     function moveArrowVisual(index) {
