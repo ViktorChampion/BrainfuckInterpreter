@@ -679,6 +679,7 @@
         initAsciiTable();
         updateExamplesDropdown();
         updateCodeHighlight();
+        updateMemoryMode();
     };
 
     function initTape() {
@@ -939,6 +940,24 @@
         const inputs = document.getElementById('inputBuffer').value;
         
         switch (cmd) {
+            case '>':
+                if (ptr < TAPE_SIZE - 1) {
+                    ptr++;
+                } else if (memoryMode === "wrap") {
+                    ptr = 0; // Если "wrap", прыгаем в начало ленты
+                }
+                // Если "bounded", ptr просто остаётся равен TAPE_SIZE - 1
+                codeIndex++;
+                break;
+            case '<':
+                if (ptr > 0) {
+                    ptr--;
+                } else if (memoryMode === "wrap") {
+                    ptr = TAPE_SIZE - 1; // Если "wrap", прыгаем в самый конец ленты
+                }
+                // Если "bounded", ptr просто остаётся равен 0
+                codeIndex++;
+                break;
             case '+':
                 memory[ptr] = (memory[ptr] + 1) % 256;
                 codeIndex++;
