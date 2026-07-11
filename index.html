@@ -423,6 +423,11 @@
     <header>
         <h1 id="title">Brainfuck Visualizer</h1>
         <div style="display: flex; gap: 10px; align-items: center;">
+            <!-- Новый селектор режима памяти -->
+            <select id="memoryModeSelect" onchange="updateMemoryMode()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
+                <option value="bounded" id="optBounded">Bounded</option>
+                <option value="wrap" id="optWrap">Wrap-around</option>
+            </select>
             <select id="exampleSelect" onchange="loadExample()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
             </select>
             <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">RU</button>
@@ -450,7 +455,12 @@
         <button class="btn btn-step" id="btnStepBwd" onclick="stepBackward()" disabled>- Step</button>
         <button class="btn btn-stop" id="btnStop" onclick="stopCode()">Stop</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
-
+        <!-- Новый блок настройки размера ленты -->
+        <div class="speed-control" style="gap: 5px;">
+            <span id="labelTapeSize">Ячеек:</span>
+            <input type="number" id="tapeSizeInput" value="1000" min="10" max="30000" style="width: 60px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; outline: none; font-weight: bold; text-align: center;">
+            <button class="btn" id="btnResizeTape" onclick="resizeTape()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
+        </div>
         <div class="current-command-info" id="commandInfo">
             <span class="cmd-index" id="cmdIndex">—</span>
             <span class="cmd-char" id="cmdChar">␣</span>
@@ -531,7 +541,10 @@
                 { cmd: ',', desc: 'Input char into current cell' },
                 { cmd: '[', desc: 'Jump forward if cell is 0' },
                 { cmd: ']', desc: 'Jump back if cell is not 0' }
-            ]
+            ],
+            optBounded: "Bounded (Standard)",
+            optWrap: "Wrap-around (Loop)",
+            labelTapeSize: "Cells:",
         },
         ru: {
             title: "Визуализатор Brainfuck",
@@ -570,13 +583,45 @@
                 { cmd: ',', desc: 'Считать символ из ввода в ячейку' },
                 { cmd: '[', desc: 'Перейти вперёд за ] если в ячейке 0' },
                 { cmd: ']', desc: 'Вернуться назад к [ если в ячейке не 0' }
-            ]
+            ],
+            optBounded: "Ограниченная (Фиксация)",
+            optWrap: "Закольцованная (Цикл)",
+            labelTapeSize: "Ячеек:",
         }
     };
+    function updateMemoryMode() {
+        memoryMode = document.getElementById('memoryModeSelect').value;
+    }
+    function resizeTape() {
+        const inputEl = document.getElementById('tapeSizeInput');
+        let newSize = parseInt(inputEl.value);
+
+        // Простая валидация диапазона (можно настроить под себя)
+        if (isNaN(newSize) || newSize < 10) {
+            newSize = 10;
+        } else if (newSize > 30000) {
+            newSize = 30000; // Ограничим верхнюю планку для стабильности DOM
+        }
+        inputEl.value = newSize;
+
+        // Останавливаем выполнение, если программа была запущена
+        stopCode();
+
+        // Обновляем размер и выделяем новый массив памяти
+        TAPE_SIZE = newSize;
+        memory = new Array(TAPE_SIZE).fill(0);
+        ptr = 0;
+        history = [];
+
+        // Пересоздаем ячейки в интерфейсе
+        initTape();
+        updateUI();
+    }
 
     // === СОСТОЯНИЕ ===
-    const TAPE_SIZE = 1000;
+    let TAPE_SIZE = 1000;
     let memory = new Array(TAPE_SIZE).fill(0);
+    let memoryMode = "bounded";
     let ptr = 0;
     let codeIndex = 0;
     let rawCodeIndex = -1;
@@ -689,7 +734,8 @@
         document.getElementById('btnStepBwd').innerText = t.btnStepBwd;
         document.getElementById('btnStop').innerText = t.btnStop;
         document.getElementById('btnClear').innerText = t.btnClear;
-        
+        document.getElementById('optBounded').innerText = t.optBounded;
+        document.getElementById('optWrap').innerText = t.optWrap;
         const copyBtn = document.getElementById('btnCopy');
         if (copyBtn.innerText !== translations.en.btnCopied && copyBtn.innerText !== translations.ru.btnCopied) {
             copyBtn.innerText = t.btnCopy;
@@ -707,6 +753,9 @@
         
         if (typeof initAsciiTable === 'function') initAsciiTable();
         updateCommandInfo();
+        if (document.getElementById('labelTapeSize')) {
+            document.getElementById('labelTapeSize').innerText = translations[lang].labelTapeSize;
+        }
     }
 
     // === ПОДСВЕТКА КОДА ===
@@ -890,14 +939,6 @@
         const inputs = document.getElementById('inputBuffer').value;
         
         switch (cmd) {
-            case '>':
-                if (ptr < TAPE_SIZE - 1) ptr++;
-                codeIndex++;
-                break;
-            case '<':
-                if (ptr > 0) ptr--;
-                codeIndex++;
-                break;
             case '+':
                 memory[ptr] = (memory[ptr] + 1) % 256;
                 codeIndex++;
