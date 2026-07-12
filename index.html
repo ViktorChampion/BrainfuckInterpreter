@@ -530,7 +530,8 @@
                 sixseven: "SIXSEVEN",
                 loopdoub: "Looping Doubler",
                 thisurl: "URL of this site",
-                logicn: "Logical AND"
+                logicn: "Logical AND",
+                logicno: "Logical NOT"
             },
             hints: [
                 { cmd: '>', desc: 'Move pointer right' },
@@ -573,7 +574,8 @@
                 sixseven: "SIXSEVEN",
                 loopdoub: "Циклический удвоитель",
                 thisurl: "URL этого сайта",
-                logicn: "Логическое И"
+                logicn: "Логическое И",
+                logicno: "Логическое НЕ"
             },
             hints: [
                 { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -672,6 +674,10 @@
         logicn: {
             code: ",>++++++++[-<------>],>++++++++[-<------>]>+>+<<<<[>[[-]+++++++[->+++++++<]>.>-<-<<[-]]]>>>[->[-]++++++++[-<++++++>]<.[-]]",
             input: "11"
+        },
+        logicno: {
+            code: ",>++++++++[-<------>]>+<<[[-]++++++[->++++++++<]>.[-]>-<<]>>[->+++++++[->+++++++<]>.[-]]",
+            input: "1"
         }
     };
 
@@ -1207,6 +1213,7 @@
         select.innerHTML += `<option value="loopdoub">${t.examples.loopdoub}</option>`;
         select.innerHTML += `<option value="thisurl">${t.examples.thisurl}</option>`;
         select.innerHTML += `<option value="logicn">${t.examples.logicn}</option>`;
+        select.innerHTML += `<option value="logicno">${t.examples.logicno}</option>`;
         select.value = selectedValue;
     }
 
