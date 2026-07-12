@@ -456,9 +456,15 @@
         <button class="btn btn-stop" id="btnStop" onclick="stopCode()">Stop</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
         <!-- Новый блок настройки размера ленты -->
+        <div class="speed-control">
+            <span id="labelSpeed">Скорость:</span>
+            <input type="range" id="speed" min="0" max="10" value="5" onchange="updateSpeed()">
+            <span id="speedVal">5</span>
+        </div>
+        <span class="execution-status" id="execStatus">⏳ Выполнение...</span>
         <div class="speed-control" style="gap: 5px;">
             <span id="labelTapeSize">Ячеек:</span>
-            <input type="number" id="tapeSizeInput" value="1000" min="10" max="30000" style="width: 60px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; outline: none; font-weight: bold; text-align: center;">
+            <input type="number" id="tapeSizeInput" value="1000" min="1" max="30000" style="width: 60px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; outline: none; font-weight: bold; text-align: center;">
             <button class="btn" id="btnResizeTape" onclick="resizeTape()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
         <div class="current-command-info" id="commandInfo">
@@ -466,13 +472,6 @@
             <span class="cmd-char" id="cmdChar">␣</span>
             <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">ожидание</span>
         </div>
-
-        <div class="speed-control">
-            <span id="labelSpeed">Скорость:</span>
-            <input type="range" id="speed" min="0" max="10" value="5" onchange="updateSpeed()">
-            <span id="speedVal">5</span>
-        </div>
-        <span class="execution-status" id="execStatus">⏳ Выполнение...</span>
     </div>
 
     <div class="io-panel">
