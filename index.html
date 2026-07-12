@@ -529,7 +529,8 @@
                 cat: "Cat program (Echo input)",
                 sixseven: "SIXSEVEN",
                 loopdoub: "Looping Doubler",
-                thisurl: "URL of this site"
+                thisurl: "URL of this site",
+                logicn: "Logical AND"
             },
             hints: [
                 { cmd: '>', desc: 'Move pointer right' },
@@ -571,7 +572,8 @@
                 cat: "Программа-эхо (Вывод ввода)",
                 sixseven: "SIXSEVEN",
                 loopdoub: "Циклический удвоитель",
-                thisurl: "URL этого сайта"
+                thisurl: "URL этого сайта",
+                logicn: "Логическое И"
             },
             hints: [
                 { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -666,6 +668,10 @@
         thisurl: {
             code: "++++++++++[->++++++++++<]>++++.<+++[->++++<]>..----.+++.<+++[->-------------------<]>.-----------..<+++++++[->++++++++++<]>+.-------------.++.+++++++++.-----.+++.<+++[->-----<]>.+++++.-------.++++++++++++.+++.-------.++++++.-.<++++++++[->--------<]>.>++++++++++[->++++++++++<]>+++.++.+++++++++++.------------.+++++++++++++.<+++++[->----<]>+.<<.>>+++++++.++++++.<<+.>+++++[->---------<]>.<++++++[->++++++++<]>.<+++++[->---<]>--.++++++++.+++++.--------.<+++++[->+++<]>.<++++++[->---<]>.++++++++.<+++++++++++++++++[->--<]>.<++++++[->++++++<]>+.++++++.>++++++++++[->++++++++++<]>+.>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++[->++<]>.>++++++++[->++++++++++++++<]>.<<.<<.<<.>>.>>.",
             input: "https://viktorchampion.github.io/BrainfuckInterpreter"
+        },
+        logicn: {
+            code: ",>++++++++[-<------>],>++++++++[-<------>]>+>+<<<<[>[[-]+++++++[->+++++++<]>.>-<-<<[-]]]>>>[->[-]++++++++[-<++++++>]<.[-]]",
+            input: "11"
         }
     };
 
@@ -1200,6 +1206,7 @@
         select.innerHTML += `<option value="sixseven">${t.examples.sixseven}</option>`;
         select.innerHTML += `<option value="loopdoub">${t.examples.loopdoub}</option>`;
         select.innerHTML += `<option value="thisurl">${t.examples.thisurl}</option>`;
+        select.innerHTML += `<option value="logicn">${t.examples.logicn}</option>`;
         select.value = selectedValue;
     }
 
