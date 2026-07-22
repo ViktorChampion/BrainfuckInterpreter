@@ -423,7 +423,6 @@
     <header>
         <h1 id="title">Brainfuck Visualizer</h1>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <!-- Новый селектор режима памяти -->
             <select id="memoryModeSelect" onchange="updateMemoryMode()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
                 <option value="bounded" id="optBounded">Bounded</option>
                 <option value="wrap" id="optWrap">Wrap-around</option>
@@ -441,7 +440,7 @@
     <div class="workspace">
         <div class="code-container">
             <div class="code-wrapper">
-                <textarea id="code" placeholder="Введите Brainfuck код сюда..." onscroll="syncHighlightScroll()" oninput="updateCodeHighlight()"></textarea>
+                <textarea id="code" placeholder="Enter Brainfuck code here..." onscroll="syncHighlightScroll()" oninput="updateCodeHighlight()"></textarea>
                 <div class="code-highlight" id="codeHighlight"></div>
             </div>
         </div>
@@ -455,33 +454,36 @@
         <button class="btn btn-step" id="btnStepBwd" onclick="stepBackward()" disabled>- Step</button>
         <button class="btn btn-stop" id="btnStop" onclick="stopCode()">Stop</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
-        <!-- Новый блок настройки размера ленты -->
+        
         <div class="speed-control">
-            <span id="labelSpeed">Скорость:</span>
+            <span id="labelSpeed">Speed:</span>
             <input type="range" id="speed" min="0" max="10" value="5" onchange="updateSpeed()">
             <span id="speedVal">5</span>
         </div>
-        <span class="execution-status" id="execStatus">⏳ Выполнение...</span>
+        
+        <span class="execution-status" id="execStatus">⏳ Running...</span>
+        
         <div class="speed-control" style="gap: 5px;">
-            <span id="labelTapeSize">Ячеек:</span>
+            <span id="labelTapeSize">Cells:</span>
             <input type="number" id="tapeSizeInput" value="1000" min="1" max="30000" style="width: 60px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; outline: none; font-weight: bold; text-align: center;">
             <button class="btn" id="btnResizeTape" onclick="resizeTape()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
+        
         <div class="current-command-info" id="commandInfo">
             <span class="cmd-index" id="cmdIndex">—</span>
             <span class="cmd-char" id="cmdChar">␣</span>
-            <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">ожидание</span>
+            <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">waiting</span>
         </div>
     </div>
 
     <div class="io-panel">
         <div class="io-field">
-            <label id="labelInput">Ввод (для команды ','):</label>
-            <textarea id="inputBuffer" placeholder="Символы для команды ','"></textarea>
+            <label id="labelInput">Input (passed to ','):</label>
+            <textarea id="inputBuffer" placeholder="Characters for ',' command"></textarea>
         </div>
         <div class="io-field">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <label id="labelOutput" style="margin-bottom: 0;">Вывод:</label>
+                <label id="labelOutput" style="margin-bottom: 0;">Output:</label>
                 <button id="btnCopy" onclick="copyOutput()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; transition: background 0.2s;">Copy</button>
             </div>
             <textarea id="output" readonly></textarea>
@@ -489,13 +491,13 @@
     </div>
 
     <div class="hints">
-        <h3 id="hintsTitle">Справка по командам</h3>
+        <h3 id="hintsTitle">Command Reference</h3>
         <div class="hint-grid" id="hintGrid"></div>
     </div>
 </div>
 
 <div class="hints" style="margin-top: 20px; max-width: 900px; width: 100%; box-sizing: border-box;">
-    <h3 id="asciiTitle">Таблица ASCII (0-127)</h3>
+    <h3 id="asciiTitle">ASCII Table (0-255)</h3>
     <div id="asciiContainer"></div>
 </div>
 
@@ -506,7 +508,7 @@
         en: {
             title: "Brainfuck Visualizer",
             hintsTitle: "Command Reference",
-            labelInput: "Input (passed to ',')",
+            labelInput: "Input (passed to ','):",
             placeholderInput: "Characters for ',' command",
             labelOutput: "Output:",
             labelSpeed: "Speed:",
@@ -532,7 +534,7 @@
                 thisurl: "URL of this site",
                 logicn: "Logical AND",
                 logicno: "Logical NOT",
-                codeofsymb: "ASCII code of a char"
+                codeofsymb: "ASCII code of a char",
             },
             hints: [
                 { cmd: '>', desc: 'Move pointer right' },
@@ -547,11 +549,12 @@
             optBounded: "Bounded (Standard)",
             optWrap: "Wrap-around (Loop)",
             labelTapeSize: "Cells:",
+            asciiTitle: "ASCII Table (0-255)"
         },
         ru: {
             title: "Визуализатор Brainfuck",
             hintsTitle: "Справка по командам",
-            labelInput: "Ввод (для команды ',')",
+            labelInput: "Ввод (для команды ','):",
             placeholderInput: "Символы для команды ','",
             labelOutput: "Вывод:",
             labelSpeed: "Скорость:",
@@ -577,7 +580,7 @@
                 thisurl: "URL этого сайта",
                 logicn: "Логическое И",
                 logicno: "Логическое НЕ",
-                codeofsymb: "ASCII-код символа"
+                codeofsymb: "ASCII-код символа",
             },
             hints: [
                 { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -592,35 +595,35 @@
             optBounded: "Ограниченная (Фиксация)",
             optWrap: "Закольцованная (Цикл)",
             labelTapeSize: "Ячеек:",
+            asciiTitle: "Таблица ASCII (0-255)"
         }
     };
-    function updateMemoryMode() {
-        memoryMode = document.getElementById('memoryModeSelect').value;
-    }
-    function resizeTape() {
-        const inputEl = document.getElementById('tapeSizeInput');
-        let newSize = parseInt(inputEl.value);
 
-        // Простая валидация диапазона (можно настроить под себя)
-        if (isNaN(newSize) || newSize < 10) {
-            newSize = 10;
-        } else if (newSize > 30000) {
-            newSize = 30000; // Ограничим верхнюю планку для стабильности DOM
+    // === Latin-1 (Windows-1252) для отображения ===
+    function codeToDisplayChar(code) {
+        if (code <= 127) {
+            return String.fromCharCode(code);
         }
-        inputEl.value = newSize;
-
-        // Останавливаем выполнение, если программа была запущена
-        stopCode();
-
-        // Обновляем размер и выделяем новый массив памяти
-        TAPE_SIZE = newSize;
-        memory = new Array(TAPE_SIZE).fill(0);
-        ptr = 0;
-        history = [];
-
-        // Пересоздаем ячейки в интерфейсе
-        initTape();
-        updateUI();
+        if (code >= 128 && code <= 255) {
+            // Для Latin-1/Windows-1252
+            if (code >= 0xA0) {
+                return String.fromCharCode(code);
+            }
+            // Специальные символы Windows-1252
+            const special = {
+                0x80: '€', 0x82: '‚', 0x83: 'ƒ', 0x84: '„', 0x85: '…',
+                0x86: '†', 0x87: '‡', 0x88: 'ˆ', 0x89: '‰', 0x8A: 'Š',
+                0x8B: '‹', 0x8C: 'Œ', 0x8E: 'Ž', 0x91: '‘', 0x92: '’',
+                0x93: '“', 0x94: '”', 0x95: '•', 0x96: '–', 0x97: '—',
+                0x98: '˜', 0x99: '™', 0x9A: 'š', 0x9B: '›', 0x9C: 'œ',
+                0x9E: 'ž', 0x9F: 'Ÿ'
+            };
+            if (special[code]) {
+                return special[code];
+            }
+            return '�';
+        }
+        return '�';
     }
 
     // === СОСТОЯНИЕ ===
@@ -682,9 +685,9 @@
             input: "1"
         },
         codeofsymb: {
-            code: ",[->+>>+<<<]>>[->+<]>[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[->+<<]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]<[>]>>[>++++++++[-<++++++>]<.[->>>>>+>+<<<<<<]>>>>>>[-<<<<<<+>>>>>>]<<<<<<[-]]>>+<<<[[->+>+<<]>>[-<<+>>]>-<<<[-]]>>>[<<<<<[->+>>+<<<]>[-<+>]]<[>>>>]>[-]<<[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<<[>]>>>++++++++[->++++++<]>.<++++++++[->------<]<<<<[->+>+<<]>>>>>[-<<<---------->>>]>>++++++++>[<[->------<]]<[<]<<<<[->+>+<<]>>>>>>[-<<<++++++++++[-<---------->]>>>]<<<++++++++[-<++++++>]<.>++++[->++++++++<]>.<<<<<.",
+            code: ",[->+>>+<<<]>>[->+<]>[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[->+<<]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]<[>]>>[>++++++++[-<++++++>]<.[->>>>>+>+<<<<<<]>>>>>>[-<<<<<<+>>>>>>]<<<<<<[-]]>>+<<<[[->+>+<<]>>[-<<+>>]>-<<<[-]]>>>[<<<<<[->+>>+<<<]>[-<+>]]<[>>>>]>[-]<<[-[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<<[>]>>>++++++++[->++++++<]>.<++++++++[->------<]<<<<[->+>+<<]>>>>>[-<<<---------->>>]>>++++++++>[<[->------<]]<[<]<<<<[->+>+<<]>>>>>>[-<<<++++++++++[-<---------->]>>>]<<<++++++++[-<++++++>]<.>++++[->++++++++<]>.<<<<<.",
             input: "A"
-        }
+        },
     };
 
     // === ИНИЦИАЛИЗАЦИЯ ===
@@ -698,6 +701,32 @@
         updateCodeHighlight();
         updateMemoryMode();
     };
+
+    function updateMemoryMode() {
+        memoryMode = document.getElementById('memoryModeSelect').value;
+    }
+
+    function resizeTape() {
+        const inputEl = document.getElementById('tapeSizeInput');
+        let newSize = parseInt(inputEl.value);
+
+        if (isNaN(newSize) || newSize < 10) {
+            newSize = 10;
+        } else if (newSize > 30000) {
+            newSize = 30000;
+        }
+        inputEl.value = newSize;
+
+        stopCode();
+
+        TAPE_SIZE = newSize;
+        memory = new Array(TAPE_SIZE).fill(0);
+        ptr = 0;
+        history = [];
+
+        initTape();
+        updateUI();
+    }
 
     function initTape() {
         const tapeEl = document.getElementById('tape');
@@ -739,7 +768,7 @@
         document.getElementById('labelOutput').innerText = t.labelOutput;
         document.getElementById('labelSpeed').innerText = t.labelSpeed;
         if(document.getElementById('asciiTitle')) {
-            document.getElementById('asciiTitle').innerText = lang === 'en' ? "ASCII Table (0-127)" : "Таблица ASCII (0-127)";
+            document.getElementById('asciiTitle').innerText = t.asciiTitle;
         }
         
         document.getElementById('code').placeholder = t.placeholder;
@@ -815,7 +844,6 @@
             cmdIndexEl.textContent = `#${rawPos}`;
             cmdCharEl.textContent = cmd;
             
-            // Найти описание команды
             const hint = t.hints.find(h => h.cmd === cmd);
             cmdDescEl.textContent = hint ? hint.desc : '';
         } else {
@@ -829,6 +857,7 @@
     function updateUI() {
         for (let i = 0; i < TAPE_SIZE; i++) {
             const cell = document.getElementById(`cell-${i}`);
+            if (!cell) continue;
             const val = memory[i];
             document.getElementById(`val-${i}`).innerText = val;
             
@@ -837,31 +866,20 @@
                 let displayChar;
                 let isPrintable = true;
                 
-                if (val >= 32 && val <= 126) {
-                    displayChar = String.fromCharCode(val);
-                } else if (val === 10) {
-                    displayChar = 'LF';
-                    isPrintable = false;
-                } else if (val === 13) {
-                    displayChar = 'CR';
-                    isPrintable = false;
-                } else if (val === 9) {
-                    displayChar = 'TAB';
-                    isPrintable = false;
-                } else if (val === 32) {
-                    displayChar = 'SP';
-                    isPrintable = false;
-                } else if (val === 0) {
-                    displayChar = 'NUL';
+                if (val >= 0 && val <= 31) {
+                    displayChar = nonPrintableNames[val] || `^${String.fromCharCode(64 + val)}`;
                     isPrintable = false;
                 } else if (val === 127) {
                     displayChar = 'DEL';
                     isPrintable = false;
-                } else if (val < 32) {
-                    displayChar = nonPrintableNames[val] || `^${String.fromCharCode(64 + val)}`;
-                    isPrintable = false;
-                } else {
+                } else if (val >= 32 && val <= 126) {
                     displayChar = String.fromCharCode(val);
+                } else if (val >= 128 && val <= 255) {
+                    displayChar = codeToDisplayChar(val);
+                    isPrintable = displayChar !== '�';
+                } else {
+                    displayChar = '?';
+                    isPrintable = false;
                 }
                 
                 asciiEl.textContent = displayChar;
@@ -954,25 +972,23 @@
         if (updateUI_) saveHistory();
         rawCodeIndex = mapToRawIndex[codeIndex];
         const cmd = cleanCode[codeIndex];
-        const inputs = document.getElementById('inputBuffer').value;
+        const inputString = document.getElementById('inputBuffer').value;
         
         switch (cmd) {
             case '>':
                 if (ptr < TAPE_SIZE - 1) {
                     ptr++;
                 } else if (memoryMode === "wrap") {
-                    ptr = 0; // Если "wrap", прыгаем в начало ленты
+                    ptr = 0;
                 }
-                // Если "bounded", ptr просто остаётся равен TAPE_SIZE - 1
                 codeIndex++;
                 break;
             case '<':
                 if (ptr > 0) {
                     ptr--;
                 } else if (memoryMode === "wrap") {
-                    ptr = TAPE_SIZE - 1; // Если "wrap", прыгаем в самый конец ленты
+                    ptr = TAPE_SIZE - 1;
                 }
-                // Если "bounded", ptr просто остаётся равен 0
                 codeIndex++;
                 break;
             case '+':
@@ -984,13 +1000,21 @@
                 codeIndex++;
                 break;
             case '.':
-                document.getElementById('output').value += String.fromCharCode(memory[ptr]);
+                const outputEl = document.getElementById('output');
+                const byte = memory[ptr];
+                outputEl.value += String.fromCharCode(byte);
                 codeIndex++;
                 break;
             case ',':
-                if (inputIndex < inputs.length) {
-                    memory[ptr] = inputs.charCodeAt(inputIndex) % 256;
-                    inputIndex++;
+                if (inputIndex < inputString.length) {
+                    const encoder = new TextEncoder();
+                    const bytes = encoder.encode(inputString);
+                    if (inputIndex < bytes.length) {
+                        memory[ptr] = bytes[inputIndex];
+                        inputIndex++;
+                    } else {
+                        memory[ptr] = 0;
+                    }
                 } else {
                     memory[ptr] = 0;
                 }
@@ -1151,7 +1175,7 @@
         updateUI();
     }
 
-    // === ASCII ТАБЛИЦА ===
+    // === ТАБЛИЦА ASCII С КАТЕГОРИЯМИ ===
     function initAsciiTable() {
         const container = document.getElementById('asciiContainer');
         const openGroups = Array.from(container.querySelectorAll('.ascii-group.open')).map(g => g.dataset.id);
@@ -1159,19 +1183,98 @@
         container.innerHTML = '';
 
         const groups = [
-            { id: 'ctrl', min: 0, max: 31, nameRu: '0-31: Управляющие символы', nameEn: '0-31: Control Characters' },
-            { id: 'space_punct', min: 32, max: 47, nameRu: '32-47: Пробел и Знаки препинания', nameEn: '32-47: Space & Punctuation' },
-            { id: 'digits', min: 48, max: 57, nameRu: '48-57: Цифры', nameEn: '48-57: Digits' },
-            { id: 'punct2', min: 58, max: 64, nameRu: '58-64: Знаки препинания', nameEn: '58-64: Punctuation' },
-            { id: 'uppercase', min: 65, max: 90, nameRu: '65-90: Заглавные латинские буквы', nameEn: '65-90: Uppercase Letters' },
-            { id: 'punct3', min: 91, max: 96, nameRu: '91-96: Знаки препинания', nameEn: '91-96: Punctuation' },
-            { id: 'lowercase', min: 97, max: 122, nameRu: '97-122: Строчные латинские буквы', nameEn: '97-122: Lowercase Letters' },
-            { id: 'punct4', min: 123, max: 127, nameRu: '123-127: Спецсимволы', nameEn: '123-127: Special Characters' }
+            { 
+                id: 'control', 
+                min: 0, 
+                max: 31, 
+                nameRu: '0-31: Управляющие символы', 
+                nameEn: '0-31: Control Characters' 
+            },
+            { 
+                id: 'space', 
+                min: 32, 
+                max: 32, 
+                nameRu: '32: Пробел', 
+                nameEn: '32: Space' 
+            },
+            { 
+                id: 'punct1', 
+                min: 33, 
+                max: 47, 
+                nameRu: '33-47: Знаки препинания', 
+                nameEn: '33-47: Punctuation' 
+            },
+            { 
+                id: 'digits', 
+                min: 48, 
+                max: 57, 
+                nameRu: '48-57: Цифры', 
+                nameEn: '48-57: Digits' 
+            },
+            { 
+                id: 'punct2', 
+                min: 58, 
+                max: 64, 
+                nameRu: '58-64: Знаки препинания', 
+                nameEn: '58-64: Punctuation' 
+            },
+            { 
+                id: 'uppercase', 
+                min: 65, 
+                max: 90, 
+                nameRu: '65-90: Заглавные буквы (A-Z)', 
+                nameEn: '65-90: Uppercase Letters (A-Z)' 
+            },
+            { 
+                id: 'punct3', 
+                min: 91, 
+                max: 96, 
+                nameRu: '91-96: Знаки препинания', 
+                nameEn: '91-96: Punctuation' 
+            },
+            { 
+                id: 'lowercase', 
+                min: 97, 
+                max: 122, 
+                nameRu: '97-122: Строчные буквы (a-z)', 
+                nameEn: '97-122: Lowercase Letters (a-z)' 
+            },
+            { 
+                id: 'punct4', 
+                min: 123, 
+                max: 126, 
+                nameRu: '123-126: Знаки препинания', 
+                nameEn: '123-126: Punctuation' 
+            },
+            { 
+                id: 'del', 
+                min: 127, 
+                max: 127, 
+                nameRu: '127: DELETE', 
+                nameEn: '127: DELETE' 
+            },
+            { 
+                id: 'latin1_1', 
+                min: 128, 
+                max: 159, 
+                nameRu: '128-159: Управляющие Latin-1', 
+                nameEn: '128-159: Latin-1 Control' 
+            },
+            { 
+                id: 'latin1_2', 
+                min: 160, 
+                max: 191, 
+                nameRu: '160-191: Latin-1 символы', 
+                nameEn: '160-191: Latin-1 Symbols' 
+            },
+            { 
+                id: 'latin1_3', 
+                min: 192, 
+                max: 255, 
+                nameRu: '192-255: Latin-1 буквы', 
+                nameEn: '192-255: Latin-1 Letters' 
+            }
         ];
-
-        const specialNames = {
-            0: 'NUL', 7: 'BEL', 8: 'BS', 9: 'TAB', 10: 'LF', 13: 'CR', 27: 'ESC', 32: 'Space', 127: 'DEL'
-        };
 
         groups.forEach(g => {
             const groupEl = document.createElement('div');
@@ -1191,11 +1294,32 @@
             content.className = 'ascii-group-content';
 
             for (let i = g.min; i <= g.max; i++) {
-                let charText = specialNames[i] || String.fromCharCode(i);
+                let charText;
+                let isPrintable = true;
+                
+                if (i >= 0 && i <= 31) {
+                    charText = nonPrintableNames[i] || `^${String.fromCharCode(64 + i)}`;
+                    isPrintable = false;
+                } else if (i === 127) {
+                    charText = 'DEL';
+                    isPrintable = false;
+                } else if (i >= 32 && i <= 126) {
+                    charText = String.fromCharCode(i);
+                } else if (i >= 128 && i <= 255) {
+                    charText = codeToDisplayChar(i);
+                    isPrintable = charText !== '�';
+                } else {
+                    charText = '?';
+                    isPrintable = false;
+                }
                 
                 const item = document.createElement('div');
                 item.className = 'ascii-item';
-                item.innerHTML = `<span class="ascii-code">#${i}</span><span class="ascii-char">${escapeHTML(charText)}</span>`;
+                item.innerHTML = `
+                    <span class="ascii-code">#${i}</span>
+                    <span class="ascii-char">${escapeHTML(charText)}</span>
+                    ${!isPrintable ? `<span style="font-size:8px;color:#6c7086;display:block;">␣</span>` : ''}
+                `;
                 content.appendChild(item);
             }
 
