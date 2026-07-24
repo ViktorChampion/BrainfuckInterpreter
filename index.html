@@ -765,8 +765,8 @@ function updateRange() {
     }
     
     // Ограничиваем разумными пределами
-    if (min < -32768) min = -32768;
-    if (max > 32767) max = 32767;
+    if (min < -65534) min = -65534;
+    if (max > 65535) max = 65535;
     
     minInput.value = min;
     maxInput.value = max;
