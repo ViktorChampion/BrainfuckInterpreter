@@ -755,8 +755,8 @@ function updateRange() {
     let min = parseInt(minInput.value);
     let max = parseInt(maxInput.value);
     
-    if (isNaN(min)) min = -128;
-    if (isNaN(max)) max = 127;
+    if (isNaN(min)) min = 0;
+    if (isNaN(max)) max = 255;
     
     if (min > max) {
         [min, max] = [max, min];
@@ -778,8 +778,8 @@ function applyRange() {
     let min = parseInt(minInput.value);
     let max = parseInt(maxInput.value);
     
-    if (isNaN(min)) min = -128;
-    if (isNaN(max)) max = 127;
+    if (isNaN(min)) min = 0;
+    if (isNaN(max)) max = 255;
     
     if (min > max) {
         [min, max] = [max, min];
@@ -788,8 +788,8 @@ function applyRange() {
     }
     
     // Ограничиваем разумными пределами
-    if (min < -32768) min = -32768;
-    if (max > 32767) max = 32767;
+    if (min < -65534) min = -65534;
+    if (max > 65535) max = 65535;
     
     minInput.value = min;
     maxInput.value = max;
