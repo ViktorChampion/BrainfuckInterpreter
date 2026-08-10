@@ -75,8 +75,8 @@
         }
 
         .cell {
-            min-width: 55px;
-            height: 65px;
+            min-width: 65px;
+            height: 70px;
             background: var(--panel-bg);
             border: 2px solid var(--border-color);
             border-radius: 6px;
@@ -119,7 +119,7 @@
             background: rgba(137, 180, 250, 0.1);
             padding: 0 4px;
             border-radius: 3px;
-            max-width: 25px;
+            max-width: 35px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -128,6 +128,12 @@
         .cell-ascii.non-printable {
             color: #f9e2af;
             background: rgba(249, 226, 175, 0.15);
+        }
+
+        .cell-ascii.overflow {
+            color: #f38ba8;
+            background: rgba(243, 139, 168, 0.15);
+            font-size: 8px;
         }
 
         .cell-value {
@@ -270,7 +276,7 @@
         }
 
         .range-control input {
-            width: 60px;
+            width: 70px;
             background: var(--panel-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
@@ -496,22 +502,20 @@
         
         <div class="range-control">
             <label id="labelRange">Range:</label>
-            <input type="number" id="minValueInput" value="-128" onchange="updateRange()">
+            <input type="number" id="minValueInput" value="-2147483648" onchange="updateRange()">
             <span>—</span>
-            <input type="number" id="maxValueInput" value="127" onchange="updateRange()">
+            <input type="number" id="maxValueInput" value="2147483647" onchange="updateRange()">
             <button class="btn" id="btnApplyRange" onclick="applyRange()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
-        
         <span class="execution-status" id="execStatus">⏳ Running...</span>
         
         <div class="current-command-info" id="commandInfo">
             <span class="cmd-index" id="cmdIndex">—</span>
             <span class="cmd-char" id="cmdChar">␣</span>
             <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">waiting</span>
-            <span style="color: #6c7086; font-size: 12px; margin-left: 10px;" id="cellInfo">Range: -128..127</span>
+            <span style="color: #6c7086; font-size: 12px; margin-left: 10px;" id="cellInfo">Range: -2147483648..2147483647</span>
         </div>
     </div>
-
     <div class="io-panel">
         <div class="io-field">
             <label id="labelInput">Input (passed to ','):</label>
@@ -540,6 +544,8 @@
 <script>
     // === НАСТРОЙКИ И ЛОКАЛИЗАЦИЯ ===
     let currentLang = 'en';
+    let minimalMode = false;
+    
     const translations = {
         en: {
             title: "Brainfuck Visualizer",
@@ -558,6 +564,8 @@
             btnClear: "Clear",
             btnCopy: "Copy",
             btnCopied: "Copied!",
+            btnMinimal: "Minimal Mode",
+            btnFull: "Full Mode",
             examplePlaceholder: "— Choose Example —",
             execStatus: "⏳ Running...",
             cmdWaiting: "waiting",
@@ -606,6 +614,8 @@
             btnClear: "Стереть",
             btnCopy: "Копировать",
             btnCopied: "Скопировано!",
+            btnMinimal: "Минимальный режим",
+            btnFull: "Полный режим",
             examplePlaceholder: "— Выберите пример —",
             execStatus: "⏳ Выполнение...",
             cmdWaiting: "ожидание",
@@ -639,8 +649,10 @@
         }
     };
 
-    // === Latin-1 (Windows-1252) для отображения ===
+    // === LATIN-1 ДЛЯ ОТОБРАЖЕНИЯ ===
     function codeToDisplayChar(code) {
+        if (code < 0 || code > 255) return null;
+        
         if (code <= 127) {
             return String.fromCharCode(code);
         }
@@ -661,13 +673,13 @@
             }
             return '�';
         }
-        return '�';
+        return null;
     }
 
     // === СОСТОЯНИЕ ===
     let TAPE_SIZE = 1000;
-    let MIN_VALUE = 0;
-    let MAX_VALUE = 255;
+    let MIN_VALUE = -2147483648;
+    let MAX_VALUE = 2147483647;
     let RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
     
     let memory = new Array(TAPE_SIZE).fill(0);
@@ -731,7 +743,7 @@
             input: "A"
         },
         len: {
-            code: ">,[>,]   Занимает для каждого символа ячейку; пропустив 0 ячейку для остановки\n<[<]>    Идет в ячейку 1\n[[-]+>]  Превращает значение каждой ячейки в 1; чтобы сложить и получить длину\n<[<]>    Опять идет в ячейку 1; чтобы начать считать длину\n[->[>]>>+<<<[<]>] Переносит все 1 в ячейку, которая дальше от последней на 2\n>>[->+>>+<<<]>>>  Создает копию этого числа\n[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]>]   Безопасно отнимает 100, сохраняя сотни в ячейке на 2 дальше и переходит обратно для цикла, в случае обнуления раньше времени не уходит в 255\n++++++++[->++++++<]>.  Прибавляет 48 для печати ASCII=символа цифры\n<++++++++[->------<]>  Отнимает 48 и переходит в ячейку\n[-<<<++++++++++[-<---------->]>>>]  Отнимает из исходного числа (сотни) раз по 100, чтобы убрать 100\n<<<<[->+>>+<<<]        Снова делает копию\n>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]  Безопасно отнимает 10 и сохраняет в соседнюю ячейку\n++++++++[->++++++<]++++++++>.       Прибавляет 48 и печатает\n<[->------<]>                       Отнимает 48\n[-<<<<---------->>>>]               Отнимает из числа без сотен (десятки) раз 10, чтобы получить единицы\n<<<++++++++[-<++++++>]<.            Прибавляет 48\nГотово! Эта программа выводит длину введенного текста, если он меньше 255, но можно изменить размер ячейки",
+            code: ">,[>,]   Занимает для каждого символа ячейку; пропустив 0 ячейку для остановки\n<[<]>    Идет в ячейку 1\n[[-]+>]  Превращает значение каждой ячейки в 1; чтобы сложить и получить длину\n<[<]>    Опять идет в ячейку 1; чтобы начать считать длину\n[->[>]>>+<<<[<]>] Переносит все 1 в ячейку, которая дальше от последней на 2\n>>[->+>>+<<<]>>>  Создает копию этого числа\n[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]>]   Безопасно отнимает 100, сохраняя сотни в ячейке на 2 дальше и переходит обратно для цикла, в случае обнуления раньше времени не уходит в 255\n++++++++[->++++++<]>.  Прибавляет 48 для печати ASCII=символа цифры\n<++++++++[->------<]>  Отнимает 48 и переходит в ячейку\n[-<<<++++++++++[-<---------->]>>>]  Отнимает из исходного числа (сотни) раз по 100, чтобы убрать 100\n<<<<[->+>>+<<<]        Снова делает копию\n>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]  Безопасно отнимает 10 и сохраняет в соседнюю ячейку\n++++++++[->++++++<]++++++++>.       Прибавляет 48 и печатает\n<[->------<]>                       Отнимает 48\n[-<<<<---------->>>>]               Отнимает из числа без сотен (десятки) раз 10, чтобы получить единицы\n<<<++++++++[-<++++++<]>.<.            Прибавляет 48\nГотово! Эта программа выводит длину введенного текста, если он меньше 255, но можно изменить размер ячейки",
             input: "Hello, World!"
         }
     };
@@ -749,96 +761,83 @@
         updateCodeHighlight();
         updateMemoryMode();
         updateRange();
+        updateMinimalMode();
     };
 
     function updateMemoryMode() {
         memoryMode = document.getElementById('memoryModeSelect').value;
     }
 
-function updateRange() {
-    const minInput = document.getElementById('minValueInput');
-    const maxInput = document.getElementById('maxValueInput');
-    let min = parseInt(minInput.value);
-    let max = parseInt(maxInput.value);
-    
-    if (isNaN(min)) min = 0;
-    if (isNaN(max)) max = 255;
-    
-    if (min > max) {
-        [min, max] = [max, min];
-        minInput.value = min;
-        maxInput.value = max;
-    }
-    
-    // Ограничиваем разумными пределами
-    if (min < -65534) min = -65534;
-    if (max > 65535) max = 65535;
-    
-    minInput.value = min;
-    maxInput.value = max;
-}
-
-function applyRange() {
-    const minInput = document.getElementById('minValueInput');
-    const maxInput = document.getElementById('maxValueInput');
-    let min = parseInt(minInput.value);
-    let max = parseInt(maxInput.value);
-    
-    if (isNaN(min)) min = 0;
-    if (isNaN(max)) max = 255;
-    
-    if (min > max) {
-        [min, max] = [max, min];
-        minInput.value = min;
-        maxInput.value = max;
-    }
-    
-    // Ограничиваем разумными пределами
-    if (min < -65534) min = -65534;
-    if (max > 65535) max = 65535;
-    
-    minInput.value = min;
-    maxInput.value = max;
-    
-    stopCode();
-    
-    const oldMin = MIN_VALUE;
-    const oldMax = MAX_VALUE;
-    const oldRange = RANGE_SIZE;
-    
-    MIN_VALUE = min;
-    MAX_VALUE = max;
-    RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
-    
-    // Просто обрезаем значения до нового диапазона
-    for (let i = 0; i < TAPE_SIZE; i++) {
-        const val = memory[i];
-        // Если значение в пределах нового диапазона - оставляем
-        if (val >= MIN_VALUE && val <= MAX_VALUE) {
-            // ничего не делаем
-        } else if (val < MIN_VALUE) {
-            memory[i] = MIN_VALUE;
-        } else if (val > MAX_VALUE) {
-            memory[i] = MAX_VALUE;
+    function updateRange() {
+        const minInput = document.getElementById('minValueInput');
+        const maxInput = document.getElementById('maxValueInput');
+        let min = parseInt(minInput.value);
+        let max = parseInt(maxInput.value);
+        
+        if (isNaN(min)) min = -2147483648;
+        if (isNaN(max)) max = 2147483647;
+        
+        if (min > max) {
+            [min, max] = [max, min];
+            minInput.value = min;
+            maxInput.value = max;
         }
+        
+        if (min < -2147483648) min = -2147483648;
+        if (max > 2147483647) max = 2147483647;
+        
+        minInput.value = min;
+        maxInput.value = max;
     }
-    
-    // Обновляем историю
-    history = history.map(state => ({
-        ...state,
-        memory: state.memory.map(val => {
-            if (val >= MIN_VALUE && val <= MAX_VALUE) {
-                return val;
-            } else if (val < MIN_VALUE) {
-                return MIN_VALUE;
-            } else {
-                return MAX_VALUE;
+
+    function applyRange() {
+        const minInput = document.getElementById('minValueInput');
+        const maxInput = document.getElementById('maxValueInput');
+        let min = parseInt(minInput.value);
+        let max = parseInt(maxInput.value);
+        
+        if (isNaN(min)) min = -2147483648;
+        if (isNaN(max)) max = 2147483647;
+        
+        if (min > max) {
+            [min, max] = [max, min];
+            minInput.value = min;
+            maxInput.value = max;
+        }
+        
+        if (min < -2147483648) min = -2147483648;
+        if (max > 2147483647) max = 2147483647;
+        
+        minInput.value = min;
+        maxInput.value = max;
+        
+        stopCode();
+        
+        MIN_VALUE = min;
+        MAX_VALUE = max;
+        RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
+        
+        for (let i = 0; i < TAPE_SIZE; i++) {
+            const val = memory[i];
+            if (val < MIN_VALUE) {
+                memory[i] = MIN_VALUE;
+            } else if (val > MAX_VALUE) {
+                memory[i] = MAX_VALUE;
             }
-        })
-    }));
-    
-    updateUI();
-}
+        }
+        
+        history = history.map(state => ({
+            ...state,
+            memory: state.memory.map(val => {
+                if (val < MIN_VALUE) return MIN_VALUE;
+                if (val > MAX_VALUE) return MAX_VALUE;
+                return val;
+            })
+        }));
+        
+        updateUI();
+    }
+
     function resizeTape() {
         const inputEl = document.getElementById('tapeSizeInput');
         let newSize = parseInt(inputEl.value);
@@ -934,6 +933,11 @@ function applyRange() {
         if (copyBtn.innerText !== translations.en.btnCopied && copyBtn.innerText !== translations.ru.btnCopied) {
             copyBtn.innerText = t.btnCopy;
         }
+        
+        const minimalBtn = document.getElementById('btnMinimal');
+        if (minimalBtn) {
+            minimalBtn.innerText = minimalMode ? t.btnFull : t.btnMinimal;
+        }
 
         document.getElementById('execStatus').innerText = t.execStatus;
 
@@ -955,7 +959,6 @@ function applyRange() {
         if (typeof initAsciiTable === 'function') initAsciiTable();
         updateCommandInfo();
     }
-
     // === ПОДСВЕТКА КОДА ===
     function updateCodeHighlight() {
         const textarea = document.getElementById('code');
@@ -1010,28 +1013,53 @@ function applyRange() {
     }
 
     // === НОРМАЛИЗАЦИЯ ЗНАЧЕНИЙ ===
-function normalizeValue(val) {
-    // Если значение в пределах диапазона - возвращаем как есть
-    if (val >= MIN_VALUE && val <= MAX_VALUE) {
+    function normalizeValue(val) {
+        if (val >= MIN_VALUE && val <= MAX_VALUE) {
+            return val;
+        }
+        
+        const rangeSize = RANGE_SIZE;
+        
+        if (val > MAX_VALUE) {
+            const diff = val - MAX_VALUE;
+            return MIN_VALUE + ((diff - 1) % rangeSize);
+        } else if (val < MIN_VALUE) {
+            const diff = MIN_VALUE - val;
+            return MAX_VALUE - ((diff - 1) % rangeSize);
+        }
+        
         return val;
     }
-    
-    // Вычисляем размер диапазона
-    const rangeSize = RANGE_SIZE;
-    
-    // Циклическое переполнение (wrap-around)
-    if (val > MAX_VALUE) {
-        // Если значение больше максимума
-        const diff = val - MAX_VALUE;
-        return MIN_VALUE + ((diff - 1) % rangeSize);
-    } else if (val < MIN_VALUE) {
-        // Если значение меньше минимума
-        const diff = MIN_VALUE - val;
-        return MAX_VALUE - ((diff - 1) % rangeSize);
+
+    // === СПЕЦИАЛЬНАЯ ФУНКЦИЯ ДЛЯ ВВОДА (ОБРЕЗАНИЕ ПО РАЗМЕРУ ЯЧЕЙКИ) ===
+    function normalizeInputValue(codePoint) {
+        // Размер ячейки = MAX_VALUE - MIN_VALUE + 1
+        const cellSize = RANGE_SIZE;
+        
+        // Если код уже в пределах диапазона - возвращаем как есть
+        if (codePoint >= MIN_VALUE && codePoint <= MAX_VALUE) {
+            return codePoint;
+        }
+        
+        // Приводим код к диапазону MIN_VALUE..MAX_VALUE
+        let normalized;
+        
+        if (codePoint >= 0) {
+            // Для положительных чисел: обрезаем по модулю размера ячейки
+            normalized = MIN_VALUE + (codePoint % cellSize);
+        } else {
+            // Для отрицательных: тоже обрезаем, но аккуратно
+            const positive = -codePoint;
+            const remainder = positive % cellSize;
+            if (remainder === 0) {
+                normalized = MIN_VALUE;
+            } else {
+                normalized = MAX_VALUE - remainder + 1;
+            }
+        }
+        
+        return normalized;
     }
-    
-    return val;
-}
 
     // === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ===
     function updateUI() {
@@ -1044,33 +1072,62 @@ function normalizeValue(val) {
             const asciiEl = document.getElementById(`ascii-${i}`);
             if (asciiEl) {
                 let displayChar;
-                let isPrintable = true;
+                let isPrintable = false;
+                let isOverflow = false;
                 
-                // Для отрицательных чисел показываем просто число
-                if (val < 0) {
-                    displayChar = `${val}`;
-                    isPrintable = false;
-                } else if (val >= 0 && val <= 31) {
-                    displayChar = nonPrintableNames[val] || `^${String.fromCharCode(64 + val)}`;
-                    isPrintable = false;
-                } else if (val === 127) {
-                    displayChar = 'DEL';
-                    isPrintable = false;
-                } else if (val >= 32 && val <= 126) {
-                    displayChar = String.fromCharCode(val);
-                } else if (val >= 128 && val <= 255) {
-                    displayChar = codeToDisplayChar(val);
-                    isPrintable = displayChar !== '�';
-                } else if (val > 255) {
-                    displayChar = `0x${val.toString(16).toUpperCase()}`;
-                    isPrintable = false;
+                if (val >= 0 && val <= 255) {
+                    if (val <= 127) {
+                        if (val <= 31) {
+                            displayChar = nonPrintableNames[val] || `^${String.fromCharCode(64 + val)}`;
+                            isPrintable = false;
+                        } else if (val === 127) {
+                            displayChar = 'DEL';
+                            isPrintable = false;
+                        } else if (val >= 32 && val <= 126) {
+                            displayChar = String.fromCharCode(val);
+                            isPrintable = true;
+                        } else {
+                            displayChar = String.fromCharCode(val);
+                            isPrintable = true;
+                        }
+                    } else {
+                        const char = codeToDisplayChar(val);
+                        if (char && char !== '�') {
+                            displayChar = char;
+                            isPrintable = true;
+                        } else {
+                            displayChar = '�';
+                            isPrintable = false;
+                        }
+                    }
+                } else if (val > 255 && val <= 0xFFFF) {
+                    try {
+                        const char = String.fromCharCode(val);
+                        if (char && !/[\u0000-\u001F\u007F]/.test(char)) {
+                            displayChar = char;
+                            isPrintable = true;
+                        } else {
+                            displayChar = `U+${val.toString(16).toUpperCase()}`;
+                            isPrintable = false;
+                        }
+                    } catch (e) {
+                        displayChar = `U+${val.toString(16).toUpperCase()}`;
+                        isPrintable = false;
+                    }
                 } else {
-                    displayChar = `${val}`;
+                    displayChar = `[${val}]`;
                     isPrintable = false;
+                    isOverflow = true;
                 }
                 
                 asciiEl.textContent = displayChar;
-                asciiEl.className = 'cell-ascii' + (isPrintable ? '' : ' non-printable');
+                asciiEl.className = 'cell-ascii';
+                if (!isPrintable) {
+                    asciiEl.classList.add('non-printable');
+                }
+                if (isOverflow) {
+                    asciiEl.classList.add('overflow');
+                }
             }
             
             if (i === ptr) {
@@ -1190,11 +1247,14 @@ function normalizeValue(val) {
                 const outputEl = document.getElementById('output');
                 const val = memory[ptr];
                 
-                // Если значение в диапазоне 0-65535, выводим как символ
                 if (val >= 0 && val <= 0xFFFF) {
-                    outputEl.value += String.fromCharCode(val);
+                    try {
+                        const char = String.fromCharCode(val);
+                        outputEl.value += char;
+                    } catch (e) {
+                        outputEl.value += `[${val}]`;
+                    }
                 } else {
-                    // Для отрицательных или слишком больших чисел выводим как число
                     outputEl.value += `[${val}]`;
                 }
                 codeIndex++;
@@ -1204,15 +1264,8 @@ function normalizeValue(val) {
                     const char = inputString[inputIndex];
                     const codePoint = char.codePointAt(0) || 0;
                     
-                    // Отображаем код символа в наш диапазон
-                    if (codePoint >= MIN_VALUE && codePoint <= MAX_VALUE) {
-                        memory[ptr] = codePoint;
-                    } else if (codePoint > MAX_VALUE) {
-                        // Если код больше максимума, обрезаем
-                        memory[ptr] = MAX_VALUE;
-                    } else {
-                        memory[ptr] = MIN_VALUE;
-                    }
+                    // Обрезаем по размеру текущего диапазона
+                    memory[ptr] = normalizeInputValue(codePoint);
                     inputIndex++;
                 } else {
                     memory[ptr] = 0;
@@ -1506,7 +1559,7 @@ function normalizeValue(val) {
                     charText = String.fromCharCode(i);
                 } else if (i >= 128 && i <= 255) {
                     charText = codeToDisplayChar(i);
-                    isPrintable = charText !== '�';
+                    isPrintable = charText !== '�' && charText !== null;
                 } else {
                     charText = '?';
                     isPrintable = false;
@@ -1584,7 +1637,7 @@ function normalizeValue(val) {
             copyBtn.innerText = translations[currentLang].btnCopied;
             copyBtn.style.background = "#a6e3a1";
             copyBtn.style.color = "#11111b";
-
+            
             setTimeout(() => {
                 copyBtn.innerText = originalText;
                 copyBtn.style.background = "";
