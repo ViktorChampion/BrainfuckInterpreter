@@ -599,11 +599,11 @@
 
 <script>
 // =====================================================================
-// ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ СКРИПТ - ОПТИМИЗАЦИЯ ОТКЛЮЧЕНА
+// ИСПРАВЛЕННЫЙ СКРИПТ
 // =====================================================================
 
 let currentLang = 'en';
-let useOptimization = false; // ВСЕГДА false
+let useOptimization = false;
 let optimizedCode = [];
 let totalRawCommands = 0;
 let totalOptimizedCommands = 0;
@@ -1187,23 +1187,30 @@ function prepareExecution() {
     updateStats();
 }
 
-// === ГЛАВНАЯ ЛОГИКА ВЫПОЛНЕНИЯ ===
+// =====================================================================
+// ГЛАВНАЯ ЛОГИКА ВЫПОЛНЕНИЯ - ИСПРАВЛЕННАЯ
+// =====================================================================
 function executeRawOp(cmd, updateUI_ = true) {
     const inputString = document.getElementById('inputBuffer').value;
+    
     switch (cmd) {
         case '>':
             if (ptr < TAPE_SIZE - 1) ptr++;
             else if (memoryMode === "wrap") ptr = 0;
+            codeIndex++;
             break;
         case '<':
             if (ptr > 0) ptr--;
             else if (memoryMode === "wrap") ptr = TAPE_SIZE - 1;
+            codeIndex++;
             break;
         case '+':
             memory[ptr] = normalizeValue(memory[ptr] + 1);
+            codeIndex++;
             break;
         case '-':
             memory[ptr] = normalizeValue(memory[ptr] - 1);
+            codeIndex++;
             break;
         case '.':
             const outputEl = document.getElementById('output');
@@ -1217,6 +1224,7 @@ function executeRawOp(cmd, updateUI_ = true) {
             } else {
                 outputEl.value += '[' + val + ']';
             }
+            codeIndex++;
             break;
         case ',':
             if (inputIndex < inputString.length) {
@@ -1227,6 +1235,7 @@ function executeRawOp(cmd, updateUI_ = true) {
             } else {
                 memory[ptr] = 0;
             }
+            codeIndex++;
             break;
         case '[':
             if (memory[ptr] === 0) {
@@ -1259,12 +1268,16 @@ function executeRawOp(cmd, updateUI_ = true) {
                     if (cleanCode[codeIndex] === ']') count++;
                     if (cleanCode[codeIndex] === '[') count--;
                 }
+                codeIndex++;
             } else {
                 codeIndex++;
             }
             break;
+        default:
+            codeIndex++;
+            break;
     }
-    codeIndex++;
+    
     if (updateUI_) updateUI();
     return true;
 }
