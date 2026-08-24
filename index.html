@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainfuck Visualizer</title>
+    <title>Brainfuck Visualizer - Turbo Edition</title>
     <style>
         :root {
             --bg-color: #1e1e2e;
@@ -13,6 +13,7 @@
             --active-color: #f38ba8;
             --border-color: #45475a;
             --highlight-color: #f9e2af;
+            --success-color: #a6e3a1;
         }
 
         body {
@@ -265,6 +266,8 @@
         .btn-step { background: #89b4fa; color: #11111b; }
         .btn-wait { background: #f9e2af; color: #11111b; }
         .btn-ascii { background: #cba6f7; color: #11111b; }
+        .btn-compile { background: #f9e2af; color: #11111b; }
+        .btn-worker { background: #89b4fa; color: #11111b; }
         
         .btn:disabled {
             background: #585b70;
@@ -357,6 +360,7 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            margin-top: 20px;
         }
 
         .hints h3 { margin-top: 0; color: var(--accent-color); }
@@ -416,72 +420,10 @@
             color: var(--accent-color);
             border: 1px solid rgba(137, 180, 250, 0.2);
         }
-
-        .ascii-group {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 8px;
-            overflow: hidden;
-        }
-
-        .ascii-group-header {
-            background: #2a2a3f;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            transition: background 0.2s;
-        }
-
-        .ascii-group-header:hover {
-            background: #313149;
-        }
-
-        .ascii-group-content {
-            display: none;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 6px;
-            padding: 12px;
-            background: #14141f;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .ascii-group.open .ascii-group-content {
-            display: grid;
-        }
-
-        .ascii-item {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 6px;
-            text-align: center;
-            font-size: 13px;
-        }
-        .ascii-item.custom {
-            border-color: #cba6f7;
-            background: rgba(203, 166, 247, 0.08);
-        }
-        .ascii-item.control {
-            border-color: #f9e2af;
-            background: rgba(249, 226, 175, 0.08);
-        }
-
-        .ascii-code {
-            color: #6c7086;
-            font-size: 11px;
-            display: block;
-        }
-
-        .ascii-char {
-            font-weight: bold;
-            color: var(--active-color);
-            font-family: monospace;
-            font-size: 15px;
+        .badge-worker {
+            background: rgba(166, 227, 161, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(166, 227, 161, 0.3);
         }
 
         .execution-status {
@@ -642,13 +584,97 @@
         .editor-presets .preset-btn.control-preset:hover {
             background: rgba(249, 226, 175, 0.1);
         }
+
+        /* ASCII таблица */
+        .ascii-section {
+            margin-top: 20px;
+            max-width: 900px;
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .ascii-section h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        .ascii-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .ascii-group-header {
+            background: #2a2a3f;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .ascii-group-header:hover {
+            background: #313149;
+        }
+
+        .ascii-group-content {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 6px;
+            padding: 12px;
+            background: #14141f;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .ascii-group.open .ascii-group-content {
+            display: grid;
+        }
+
+        .ascii-item {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .ascii-item.custom {
+            border-color: #cba6f7;
+            background: rgba(203, 166, 247, 0.08);
+        }
+        .ascii-item.control {
+            border-color: #f9e2af;
+            background: rgba(249, 226, 175, 0.08);
+        }
+
+        .ascii-code {
+            color: #6c7086;
+            font-size: 11px;
+            display: block;
+        }
+
+        .ascii-char {
+            font-weight: bold;
+            color: var(--active-color);
+            font-family: monospace;
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1 id="title">Brainfuck Visualizer</h1>
+        <h1 id="title">Brainfuck Visualizer ⚡</h1>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <select id="memoryModeSelect" onchange="updateMemoryMode()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
                 <option value="bounded" id="optBounded">Bounded</option>
@@ -681,6 +707,8 @@
         <button class="btn btn-step" id="btnStepFwd" onclick="stepForward()">+ Step</button>
         <button class="btn btn-step" id="btnStepBwd" onclick="stepBackward()" disabled>- Step</button>
         <button class="btn btn-stop" id="btnStop" onclick="stopCode()">Stop</button>
+        <button class="btn btn-compile" id="btnCompile" onclick="compileToJS()">🔧 Compile</button>
+        <button class="btn btn-worker" id="btnWorker" onclick="runInWorker()">🚀 Worker</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
         
         <div class="speed-control">
@@ -697,9 +725,9 @@
         
         <div class="range-control">
             <label id="labelRange">Range:</label>
-            <input type="number" id="minValueInput" value="-2147483648" onchange="updateRange()">
+            <input type="number" id="minValueInput" value="0" disabled>
             <span>—</span>
-            <input type="number" id="maxValueInput" value="2147483647" onchange="updateRange()">
+            <input type="number" id="maxValueInput" value="255" disabled>
             <button class="btn" id="btnApplyRange" onclick="applyRange()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
         
@@ -709,7 +737,7 @@
             <span class="cmd-index" id="cmdIndex">—</span>
             <span class="cmd-char" id="cmdChar">␣</span>
             <span style="color: #6c7086; font-size: 12px;" id="cmdDesc">waiting</span>
-            <span style="color: #6c7086; font-size: 12px; margin-left: 10px;" id="cellInfo">Range: -2147483648..2147483647</span>
+            <span style="color: #6c7086; font-size: 12px; margin-left: 10px;" id="cellInfo">Range: 0..255</span>
         </div>
     </div>
     
@@ -719,6 +747,7 @@
         <span>Speed: <span class="num" id="cmdPerTick">1</span> cmd/tick</span>
         <span class="optimization-status" id="optStatus">🔍 Step-by-step</span>
         <span id="asciiTableBadge" class="badge badge-std">ASCII: Standard</span>
+        <span id="execTimeBadge" class="badge badge-std">⏱️ --</span>
     </div>
     
     <div class="io-panel">
@@ -741,7 +770,8 @@
     </div>
 </div>
 
-<div class="hints" style="margin-top: 20px; max-width: 900px; width: 100%; box-sizing: border-box;">
+<!-- ASCII Table -->
+<div class="ascii-section">
     <h3 id="asciiTitle">ASCII Table (0-255)</h3>
     <div id="asciiContainer"></div>
 </div>
@@ -1258,7 +1288,7 @@ function updateAsciiTableDisplay() {
 }
 
 // =====================================================================
-// ОСТАЛЬНЫЕ ФУНКЦИИ (ОСНОВНАЯ ЛОГИКА)
+// ОСНОВНАЯ ЛОГИКА ИНТЕРПРЕТАТОРА
 // =====================================================================
 
 let currentLang = 'en';
@@ -1269,7 +1299,7 @@ let totalOptimizedCommands = 0;
 
 const translations = {
     en: {
-        title: "Brainfuck Visualizer",
+        title: "Brainfuck Visualizer ⚡",
         hintsTitle: "Command Reference",
         labelInput: "Input (passed to ','):",
         placeholderInput: "Characters for ',' command",
@@ -1317,7 +1347,7 @@ const translations = {
         asciiTitle: "ASCII Table (0-255)"
     },
     ru: {
-        title: "Визуализатор Brainfuck",
+        title: "Визуализатор Brainfuck ⚡",
         hintsTitle: "Справка по командам",
         labelInput: "Ввод (для команды ','):",
         placeholderInput: "Символы для команды ','",
@@ -1367,9 +1397,9 @@ const translations = {
 };
 
 let TAPE_SIZE = 1000;
-let MIN_VALUE = -2147483648;
-let MAX_VALUE = 2147483647;
-let RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
+let MIN_VALUE = 0;
+let MAX_VALUE = 255;
+let RANGE_SIZE = 256;
 
 let memory = new Array(TAPE_SIZE).fill(0);
 let memoryMode = "bounded";
@@ -1429,118 +1459,6 @@ const bfkExamples = {
     }
 };
 
-function optimizeCode(code) {
-    return code.split('').map(c => [c]);
-}
-
-window.onload = function() {
-    switchLanguage('en');
-    document.getElementById('minValueInput').value = MIN_VALUE;
-    document.getElementById('maxValueInput').value = MAX_VALUE;
-    initTape();
-    updateUI();
-    window.addEventListener('resize', function() { moveArrowVisual(ptr); });
-    initAsciiTable();
-    updateExamplesDropdown();
-    updateCodeHighlight();
-    updateMemoryMode();
-    updateRange();
-    updateStats();
-    updateAsciiBadge();
-};
-
-function updateMemoryMode() {
-    memoryMode = document.getElementById('memoryModeSelect').value;
-}
-
-function updateRange() {
-    const minInput = document.getElementById('minValueInput');
-    const maxInput = document.getElementById('maxValueInput');
-    let min = parseInt(minInput.value);
-    let max = parseInt(maxInput.value);
-    if (isNaN(min)) min = -2147483648;
-    if (isNaN(max)) max = 2147483647;
-    if (min > max) { [min, max] = [max, min]; minInput.value = min; maxInput.value = max; }
-    if (min < -2147483648) min = -2147483648;
-    if (max > 2147483647) max = 2147483647;
-    minInput.value = min;
-    maxInput.value = max;
-}
-
-function applyRange() {
-    const minInput = document.getElementById('minValueInput');
-    const maxInput = document.getElementById('maxValueInput');
-    let min = parseInt(minInput.value);
-    let max = parseInt(maxInput.value);
-    if (isNaN(min)) min = -2147483648;
-    if (isNaN(max)) max = 2147483647;
-    if (min > max) { [min, max] = [max, min]; minInput.value = min; maxInput.value = max; }
-    if (min < -2147483648) min = -2147483648;
-    if (max > 2147483647) max = 2147483647;
-    minInput.value = min;
-    maxInput.value = max;
-    stopCode();
-    MIN_VALUE = min;
-    MAX_VALUE = max;
-    RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
-    for (let i = 0; i < TAPE_SIZE; i++) {
-        const val = memory[i];
-        if (val < MIN_VALUE) memory[i] = MIN_VALUE;
-        else if (val > MAX_VALUE) memory[i] = MAX_VALUE;
-    }
-    history = history.map(state => ({
-        ...state,
-        memory: state.memory.map(val => {
-            if (val < MIN_VALUE) return MIN_VALUE;
-            if (val > MAX_VALUE) return MAX_VALUE;
-            return val;
-        })
-    }));
-    updateUI();
-}
-
-function resizeTape() {
-    const inputEl = document.getElementById('tapeSizeInput');
-    let newSize = parseInt(inputEl.value);
-    if (isNaN(newSize) || newSize < 10) newSize = 10;
-    else if (newSize > 30000) newSize = 30000;
-    inputEl.value = newSize;
-    stopCode();
-    const oldMemory = memory;
-    const oldPtr = ptr;
-    TAPE_SIZE = newSize;
-    memory = new Array(TAPE_SIZE).fill(0);
-    const copySize = Math.min(oldMemory.length, newSize);
-    for (let i = 0; i < copySize; i++) memory[i] = oldMemory[i];
-    if (oldPtr >= newSize) ptr = newSize - 1;
-    else ptr = oldPtr;
-    history = [];
-    initTape();
-    updateUI();
-}
-
-function initTape() {
-    const tapeEl = document.getElementById('tape');
-    tapeEl.innerHTML = '';
-    for (let i = 0; i < TAPE_SIZE; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.id = 'cell-' + i;
-        cell.innerHTML = '<div class="cell-top"><span class="cell-index">' + i + '</span><span class="cell-ascii" id="ascii-' + i + '">␣</span></div><span class="cell-value" id="val-' + i + '">0</span>';
-        tapeEl.appendChild(cell);
-    }
-    const arrow = document.createElement('div');
-    arrow.className = 'pointer-arrow';
-    arrow.id = 'arrow';
-    arrow.innerHTML = '▲';
-    tapeEl.appendChild(arrow);
-    setTimeout(function() { moveArrowVisual(0); }, 50);
-}
-
-function toggleLanguage() {
-    switchLanguage(currentLang === 'en' ? 'ru' : 'en');
-}
-
 function switchLanguage(lang) {
     currentLang = lang;
     const t = translations[lang];
@@ -1550,7 +1468,6 @@ function switchLanguage(lang) {
     document.getElementById('labelInput').innerText = t.labelInput;
     document.getElementById('labelOutput').innerText = t.labelOutput;
     document.getElementById('labelSpeed').innerText = t.labelSpeed;
-    if(document.getElementById('asciiTitle')) document.getElementById('asciiTitle').innerText = t.asciiTitle;
     document.getElementById('code').placeholder = t.placeholder;
     document.getElementById('inputBuffer').placeholder = t.placeholderInput;
     document.getElementById('btnRun').innerText = t.btnRun;
@@ -1562,23 +1479,23 @@ function switchLanguage(lang) {
     document.getElementById('btnClear').innerText = t.btnClear;
     document.getElementById('optBounded').innerText = t.optBounded;
     document.getElementById('optWrap').innerText = t.optWrap;
-    const copyBtn = document.getElementById('btnCopy');
-    if (copyBtn.innerText !== translations.en.btnCopied && copyBtn.innerText !== translations.ru.btnCopied) {
-        copyBtn.innerText = t.btnCopy;
-    }
     document.getElementById('execStatus').innerText = t.execStatus;
     if (document.getElementById('labelTapeSize')) document.getElementById('labelTapeSize').innerText = t.labelTapeSize;
     if (document.getElementById('labelRange')) document.getElementById('labelRange').innerText = t.labelRange;
+    if (document.getElementById('asciiTitle')) document.getElementById('asciiTitle').innerText = t.asciiTitle;
     updateExamplesDropdown();
     const grid = document.getElementById('hintGrid');
     grid.innerHTML = '';
     t.hints.forEach(function(h) {
         grid.innerHTML += '<div class="hint-item"><code>' + h.cmd + '</code> — ' + h.desc + '</div>';
     });
-    if (typeof initAsciiTable === 'function') initAsciiTable();
     updateCommandInfo();
-    updateAsciiTableDisplay();
     updateAsciiBadge();
+    updateAsciiTableDisplay();
+}
+
+function toggleLanguage() {
+    switchLanguage(currentLang === 'en' ? 'ru' : 'en');
 }
 
 function updateCodeHighlight() {
@@ -1611,7 +1528,7 @@ function updateCommandInfo() {
     const cmdDescEl = document.getElementById('cmdDesc');
     const cellInfoEl = document.getElementById('cellInfo');
     const t = translations[currentLang];
-    if (cellInfoEl) cellInfoEl.textContent = 'Range: ' + MIN_VALUE + '..' + MAX_VALUE;
+    if (cellInfoEl) cellInfoEl.textContent = 'Range: 0..255';
     if (isRunning && codeIndex < cleanCode.length) {
         const cmd = cleanCode[codeIndex];
         cmdIndexEl.textContent = '#' + (codeIndex + 1);
@@ -1641,28 +1558,44 @@ function updateStats() {
 }
 
 function normalizeValue(val) {
-    if (val >= MIN_VALUE && val <= MAX_VALUE) return val;
-    const rangeSize = RANGE_SIZE;
-    if (val > MAX_VALUE) {
-        const diff = val - MAX_VALUE;
-        return MIN_VALUE + ((diff - 1) % rangeSize);
-    } else if (val < MIN_VALUE) {
-        const diff = MIN_VALUE - val;
-        return MAX_VALUE - ((diff - 1) % rangeSize);
-    }
+    val = val % 256;
+    if (val < 0) val += 256;
     return val;
 }
 
 function normalizeInputValue(codePoint) {
-    const cellSize = RANGE_SIZE;
-    if (codePoint >= MIN_VALUE && codePoint <= MAX_VALUE) return codePoint;
-    if (codePoint >= 0) return MIN_VALUE + (codePoint % cellSize);
-    else {
-        const positive = -codePoint;
-        const remainder = positive % cellSize;
-        if (remainder === 0) return MIN_VALUE;
-        return MAX_VALUE - remainder + 1;
+    if (codePoint >= 0 && codePoint <= 255) return codePoint;
+    return codePoint % 256;
+}
+
+function moveArrowVisual(index) {
+    const cell = document.getElementById('cell-' + index);
+    const arrow = document.getElementById('arrow');
+    if (cell && arrow) {
+        arrow.style.left = (cell.offsetLeft + (cell.offsetWidth / 2)) + 'px';
     }
+}
+
+function escapeHTML(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function initTape() {
+    const tapeEl = document.getElementById('tape');
+    tapeEl.innerHTML = '';
+    for (let i = 0; i < TAPE_SIZE; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.id = 'cell-' + i;
+        cell.innerHTML = '<div class="cell-top"><span class="cell-index">' + i + '</span><span class="cell-ascii" id="ascii-' + i + '">␣</span></div><span class="cell-value" id="val-' + i + '">0</span>';
+        tapeEl.appendChild(cell);
+    }
+    const arrow = document.createElement('div');
+    arrow.className = 'pointer-arrow';
+    arrow.id = 'arrow';
+    arrow.innerHTML = '▲';
+    tapeEl.appendChild(arrow);
+    setTimeout(function() { moveArrowVisual(0); }, 50);
 }
 
 function updateUI() {
@@ -1742,42 +1675,6 @@ function updateUI() {
     updateCodeHighlight();
     updateStats();
     updateAsciiBadge();
-}
-
-function moveArrowVisual(index) {
-    const cell = document.getElementById('cell-' + index);
-    const arrow = document.getElementById('arrow');
-    if (cell && arrow) {
-        arrow.style.left = (cell.offsetLeft + (cell.offsetWidth / 2)) + 'px';
-    }
-}
-
-function escapeHTML(text) {
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function updateSpeed() {
-    const speed = parseInt(document.getElementById('speed').value);
-    document.getElementById('speedVal').innerText = speed;
-    useOptimization = false;
-    if (!isRunning) {
-        updateStats();
-        return;
-    }
-    if (isRunning && !isPaused) {
-        clearInterval(timer);
-        if (speed === 0) {
-            executeAllStepsInstantNoOpt();
-        } else {
-            const delay = Math.max(1, Math.round(1000 / speed));
-            timer = setInterval(function() {
-                if (!isPaused && isRunning) {
-                    executeStepWithoutOptimization(true);
-                }
-            }, delay);
-        }
-    }
-    updateStats();
 }
 
 function saveHistory() {
@@ -1901,8 +1798,13 @@ function executeStepWithoutOptimization(updateUI_ = true) {
 }
 
 function executeAllStepsInstantNoOpt() {
+    let iterations = 0;
     while (isRunning && !isPaused && !isStopped && codeIndex < cleanCode.length) {
         executeStepWithoutOptimization(false);
+        iterations++;
+        if (iterations % 10000 === 0) {
+            updateUI();
+        }
     }
     if (codeIndex >= cleanCode.length || isStopped) {
         if (history.length === 0 || history[history.length - 1].codeIndex !== codeIndex) {
@@ -1915,7 +1817,31 @@ function executeAllStepsInstantNoOpt() {
     }
 }
 
-async function runCode() {
+function updateSpeed() {
+    const speed = parseInt(document.getElementById('speed').value);
+    document.getElementById('speedVal').innerText = speed;
+    useOptimization = false;
+    if (!isRunning) {
+        updateStats();
+        return;
+    }
+    if (isRunning && !isPaused) {
+        clearInterval(timer);
+        if (speed === 0) {
+            executeAllStepsInstantNoOpt();
+        } else {
+            const delay = Math.max(1, Math.round(1000 / speed));
+            timer = setInterval(function() {
+                if (!isPaused && isRunning) {
+                    executeStepWithoutOptimization(true);
+                }
+            }, delay);
+        }
+    }
+    updateStats();
+}
+
+function runCode() {
     if (!isRunning) {
         prepareExecution();
         if (cleanCode.length === 0) return;
@@ -1997,10 +1923,6 @@ function stepBackward() {
     updateUI();
 }
 
-function initAsciiTable() {
-    updateAsciiTableDisplay();
-}
-
 function updateExamplesDropdown() {
     const select = document.getElementById('exampleSelect');
     const selectedValue = select.value;
@@ -2060,6 +1982,302 @@ function copyOutput() {
         }, 1500);
     });
 }
+
+function updateMemoryMode() {
+    memoryMode = document.getElementById('memoryModeSelect').value;
+}
+
+function updateRange() {
+    document.getElementById('minValueInput').value = 0;
+    document.getElementById('maxValueInput').value = 255;
+}
+
+function applyRange() {
+    MIN_VALUE = 0;
+    MAX_VALUE = 255;
+    RANGE_SIZE = 256;
+    document.getElementById('minValueInput').value = 0;
+    document.getElementById('maxValueInput').value = 255;
+    updateUI();
+}
+
+function resizeTape() {
+    const inputEl = document.getElementById('tapeSizeInput');
+    let newSize = parseInt(inputEl.value);
+    if (isNaN(newSize) || newSize < 10) newSize = 10;
+    else if (newSize > 30000) newSize = 30000;
+    inputEl.value = newSize;
+    stopCode();
+    const oldMemory = memory;
+    const oldPtr = ptr;
+    TAPE_SIZE = newSize;
+    memory = new Array(TAPE_SIZE).fill(0);
+    const copySize = Math.min(oldMemory.length, newSize);
+    for (let i = 0; i < copySize; i++) memory[i] = oldMemory[i];
+    if (oldPtr >= newSize) ptr = newSize - 1;
+    else ptr = oldPtr;
+    history = [];
+    initTape();
+    updateUI();
+}
+
+// =====================================================================
+// КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT
+// =====================================================================
+
+function compileBrainfuckToJS(code, input, tapeSize) {
+    const clean = code.split('').filter(c => '><+-.,[]'.includes(c)).join('');
+    
+    let bracketMap = {};
+    let stack = [];
+    
+    for (let i = 0; i < clean.length; i++) {
+        if (clean[i] === '[') {
+            stack.push(i);
+        } else if (clean[i] === ']') {
+            if (stack.length > 0) {
+                let start = stack.pop();
+                bracketMap[start] = i;
+                bracketMap[i] = start;
+            }
+        }
+    }
+    
+    let jsCode = [];
+    let indent = 0;
+    
+    jsCode.push(`(function() {`);
+    jsCode.push(`  const TAPE_SIZE = ${tapeSize};`);
+    jsCode.push(`  let memory = new Array(TAPE_SIZE).fill(0);`);
+    jsCode.push(`  let ptr = 0;`);
+    jsCode.push(`  let inputIndex = 0;`);
+    jsCode.push(`  const inputStr = \`${(input || '').replace(/`/g, '\\`')}\`;`);
+    jsCode.push(`  let outputParts = [];`);
+    jsCode.push(``);
+    jsCode.push(`  function normalize(v) {`);
+    jsCode.push(`    v = v % 256;`);
+    jsCode.push(`    if (v < 0) v += 256;`);
+    jsCode.push(`    return v;`);
+    jsCode.push(`  }`);
+    jsCode.push(``);
+    jsCode.push(`  function getCharCode(char) {`);
+    jsCode.push(`    const code = char.charCodeAt(0) || 0;`);
+    jsCode.push(`    return code % 256;`);
+    jsCode.push(`  }`);
+    jsCode.push(``);
+    jsCode.push(`  function outputChar(code) {`);
+    jsCode.push(`    if (code >= 0 && code <= 0x10FFFF) {`);
+    jsCode.push(`      try {`);
+    jsCode.push(`        if (code === 0) {`);
+    jsCode.push(`          outputParts.push('\\x00');`);
+    jsCode.push(`        } else {`);
+    jsCode.push(`          const ch = String.fromCharCode(code);`);
+    jsCode.push(`          if (ch) outputParts.push(ch);`);
+    jsCode.push(`          else outputParts.push('[' + code + ']');`);
+    jsCode.push(`        }`);
+    jsCode.push(`      } catch(e) {`);
+    jsCode.push(`        outputParts.push('[' + code + ']');`);
+    jsCode.push(`      }`);
+    jsCode.push(`    } else {`);
+    jsCode.push(`      outputParts.push('[' + code + ']');`);
+    jsCode.push(`    }`);
+    jsCode.push(`  }`);
+    jsCode.push(``);
+    
+    let i = 0;
+    while (i < clean.length) {
+        const cmd = clean[i];
+        const indentStr = '  '.repeat(indent + 1);
+        
+        if (cmd === '[') {
+            if (bracketMap[i] !== undefined) {
+                jsCode.push(`${indentStr}while (memory[ptr] !== 0) {`);
+                indent++;
+            } else {
+                jsCode.push(`${indentStr}if (memory[ptr] !== 0) {`);
+                indent++;
+            }
+        } else if (cmd === ']') {
+            if (bracketMap[i] !== undefined) {
+                indent--;
+                jsCode.push(`${indentStr}}`);
+            }
+        } else {
+            switch(cmd) {
+                case '>':
+                    jsCode.push(`${indentStr}ptr = (ptr + 1) % TAPE_SIZE;`);
+                    break;
+                case '<':
+                    jsCode.push(`${indentStr}ptr = (ptr - 1 + TAPE_SIZE) % TAPE_SIZE;`);
+                    break;
+                case '+':
+                    jsCode.push(`${indentStr}memory[ptr] = normalize(memory[ptr] + 1);`);
+                    break;
+                case '-':
+                    jsCode.push(`${indentStr}memory[ptr] = normalize(memory[ptr] - 1);`);
+                    break;
+                case '.':
+                    jsCode.push(`${indentStr}outputChar(memory[ptr]);`);
+                    break;
+                case ',':
+                    jsCode.push(`${indentStr}if (inputIndex < inputStr.length) {`);
+                    jsCode.push(`${indentStr}  memory[ptr] = getCharCode(inputStr[inputIndex]);`);
+                    jsCode.push(`${indentStr}  inputIndex++;`);
+                    jsCode.push(`${indentStr}} else {`);
+                    jsCode.push(`${indentStr}  memory[ptr] = 0;`);
+                    jsCode.push(`${indentStr}}`);
+                    break;
+            }
+        }
+        i++;
+    }
+    
+    jsCode.push(`  return outputParts.join('');`);
+    jsCode.push(`})()`);
+    
+    return jsCode.join('\n');
+}
+
+// =====================================================================
+// ВЫПОЛНЕНИЕ В WEB WORKER
+// =====================================================================
+
+let worker = null;
+let workerRunning = false;
+
+function runInWorker() {
+    if (workerRunning) {
+        return;
+    }
+    
+    const code = document.getElementById('code').value;
+    const input = document.getElementById('inputBuffer').value;
+    const tapeSize = parseInt(document.getElementById('tapeSizeInput').value) || 1000;
+    
+    try {
+        const jsProgram = compileBrainfuckToJS(code, input, tapeSize);
+        
+        const workerCode = `
+            self.onmessage = function(e) {
+                if (e.data.type === 'start') {
+                    try {
+                        const result = eval(e.data.code);
+                        self.postMessage({ type: 'done', result: result });
+                    } catch(err) {
+                        self.postMessage({ type: 'error', error: err.toString() });
+                    }
+                }
+            };
+        `;
+        
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(blob);
+        
+        worker = new Worker(workerUrl);
+        workerRunning = true;
+        
+        document.getElementById('execStatus').textContent = '🚀 Running in Worker...';
+        document.getElementById('execStatus').classList.add('active');
+        document.getElementById('btnWorker').textContent = '⏳ Working...';
+        document.getElementById('btnWorker').style.background = '#f9e2af';
+        document.getElementById('btnWorker').disabled = true;
+        
+        const startTime = performance.now();
+        
+        worker.onmessage = function(e) {
+            if (e.data.type === 'done') {
+                const endTime = performance.now();
+                const elapsed = ((endTime - startTime) / 1000).toFixed(2);
+                
+                document.getElementById('output').value = e.data.result;
+                document.getElementById('execStatus').textContent = '✅ Done!';
+                document.getElementById('execStatus').classList.remove('active');
+                
+                const badge = document.getElementById('execTimeBadge');
+                badge.textContent = `⏱️ ${elapsed}s`;
+                badge.className = 'badge badge-worker';
+                
+                workerRunning = false;
+                document.getElementById('btnWorker').textContent = '🚀 Worker';
+                document.getElementById('btnWorker').style.background = '';
+                document.getElementById('btnWorker').disabled = false;
+                
+                URL.revokeObjectURL(workerUrl);
+            } else if (e.data.type === 'error') {
+                document.getElementById('output').value = 'Error: ' + e.data.error;
+                document.getElementById('execStatus').textContent = '❌ Error!';
+                document.getElementById('execStatus').classList.remove('active');
+                
+                workerRunning = false;
+                document.getElementById('btnWorker').textContent = '🚀 Worker';
+                document.getElementById('btnWorker').style.background = '';
+                document.getElementById('btnWorker').disabled = false;
+                
+                URL.revokeObjectURL(workerUrl);
+            }
+        };
+        
+        worker.postMessage({ type: 'start', code: jsProgram });
+    } catch(e) {
+        document.getElementById('output').value = 'Compilation error: ' + e.message;
+        workerRunning = false;
+        document.getElementById('btnWorker').textContent = '🚀 Worker';
+        document.getElementById('btnWorker').style.background = '';
+        document.getElementById('btnWorker').disabled = false;
+    }
+}
+
+// =====================================================================
+// КОМПИЛЯЦИЯ В JS (ПРЕДПРОСМОТР)
+// =====================================================================
+
+function compileToJS() {
+    const code = document.getElementById('code').value;
+    const input = document.getElementById('inputBuffer').value;
+    const tapeSize = parseInt(document.getElementById('tapeSizeInput').value) || 1000;
+    
+    const jsProgram = compileBrainfuckToJS(code, input, tapeSize);
+    
+    console.log('=== COMPILED JS ===');
+    console.log(jsProgram);
+    console.log('=== END ===');
+    
+    try {
+        const result = eval(jsProgram);
+        document.getElementById('output').value = result;
+        document.getElementById('execStatus').textContent = '✅ Compiled & Executed!';
+        setTimeout(() => {
+            document.getElementById('execStatus').textContent = '';
+        }, 2000);
+    } catch(e) {
+        document.getElementById('output').value = 'Compilation error: ' + e.message;
+    }
+}
+
+// =====================================================================
+// ИНИЦИАЛИЗАЦИЯ
+// =====================================================================
+
+window.onload = function() {
+    switchLanguage('en');
+    document.getElementById('minValueInput').value = 0;
+    document.getElementById('maxValueInput').value = 255;
+    document.getElementById('minValueInput').disabled = true;
+    document.getElementById('maxValueInput').disabled = true;
+    MIN_VALUE = 0;
+    MAX_VALUE = 255;
+    RANGE_SIZE = 256;
+    initTape();
+    updateUI();
+    window.addEventListener('resize', function() { moveArrowVisual(ptr); });
+    updateExamplesDropdown();
+    updateCodeHighlight();
+    updateMemoryMode();
+    updateRange();
+    updateStats();
+    updateAsciiBadge();
+    updateAsciiTableDisplay();
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
