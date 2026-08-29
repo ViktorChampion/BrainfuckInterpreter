@@ -834,7 +834,7 @@ function getControlBehavior(name) {
         'BS': '\b',
         'FF': '\f',
         'VT': '\v',
-        'NUL': '',
+        'NUL': '\x00',
         'BEL': '\x07',
         'SO': '\x0E',
         'SI': '\x0F',
@@ -857,7 +857,7 @@ function getControlBehavior(name) {
         'SP': ' ',
         'DEL': '\x7F'
     };
-    return behaviors[name] || null;
+    return behaviors[name] !== undefined ? behaviors[name] : null;
 }
 
 // =====================================================================
@@ -877,10 +877,14 @@ const CONTROL_NAMES = {
     'DEL': 127, 'SP': 32
 };
 
+// Создаем массив для быстрого доступа: код -> имя управляющего символа
 const CONTROL_REVERSE = {};
 for (const [name, code] of Object.entries(CONTROL_NAMES)) {
     CONTROL_REVERSE[code] = name;
 }
+
+// Список кодов управляющих символов для быстрой проверки
+const CONTROL_CODES = new Set(Object.values(CONTROL_NAMES));
 
 function getStandardAsciiMap() {
     const map = {};
@@ -923,6 +927,7 @@ function charToCode(char) {
 }
 
 function codeToCharForOutput(code) {
+    // Сначала проверяем пользовательскую таблицу
     if (customAsciiReverse !== null && customAsciiReverse[code] !== undefined) {
         const charName = customAsciiReverse[code];
         const behavior = getControlBehavior(charName);
@@ -931,10 +936,21 @@ function codeToCharForOutput(code) {
         }
         return charName;
     }
-    if (code >= 0 && code <= 0xFFFF) {
+    // Проверяем стандартные управляющие - ВОЗВРАЩАЕМ СИМВОЛ, а не имя
+    if (CONTROL_REVERSE[code] !== undefined) {
+        const behavior = getControlBehavior(CONTROL_REVERSE[code]);
+        if (behavior !== null) {
+            return behavior;
+        }
+        // Если поведение не найдено, возвращаем пустую строку для NUL и т.д.
+        return '';
+    }
+    // Пытаемся вывести как Unicode символ
+    if (code >= 0 && code <= 0x10FFFF) {
         try {
-            const ch = String.fromCharCode(code);
-            if (ch) {
+            const ch = String.fromCodePoint(code);
+            // Проверяем, что это не управляющий символ
+            if (ch && !CONTROL_CODES.has(code) && code >= 32) {
                 return ch;
             }
         } catch (e) {}
@@ -943,17 +959,19 @@ function codeToCharForOutput(code) {
 }
 
 function codeToDisplayChar(code) {
+    // Сначала проверяем пользовательскую таблицу
     if (customAsciiReverse !== null && customAsciiReverse[code] !== undefined) {
-        const char = customAsciiReverse[code];
-        return char;
+        return customAsciiReverse[code];
     }
+    // Проверяем стандартные управляющие - ВОЗВРАЩАЕМ ИМЯ для отображения
     if (CONTROL_REVERSE[code] !== undefined) {
         return CONTROL_REVERSE[code];
     }
-    if (code >= 0 && code <= 0xFFFF) {
+    // Пытаемся вывести как Unicode символ
+    if (code >= 0 && code <= 0x10FFFF) {
         try {
-            const ch = String.fromCharCode(code);
-            if (ch && !/[\u0000-\u001F\u007F]/.test(ch)) {
+            const ch = String.fromCodePoint(code);
+            if (ch && code >= 32 && !CONTROL_CODES.has(code)) {
                 return ch;
             }
         } catch (e) {}
@@ -1413,9 +1431,10 @@ const translations = {
 };
 
 let TAPE_SIZE = 1000;
-let MIN_VALUE = 0;
-let MAX_VALUE = 255;
+let MIN_VALUE = -128;
+let MAX_VALUE = 127;
 let RANGE_SIZE = 256;
+let ALLOW_NEGATIVE = true;
 
 let memory = new Array(TAPE_SIZE).fill(0);
 let memoryMode = "bounded";
@@ -1544,7 +1563,7 @@ function updateCommandInfo() {
     const cmdDescEl = document.getElementById('cmdDesc');
     const cellInfoEl = document.getElementById('cellInfo');
     const t = translations[currentLang];
-    if (cellInfoEl) cellInfoEl.textContent = 'Range: 0..255';
+    if (cellInfoEl) cellInfoEl.textContent = 'Range: ' + MIN_VALUE + '..' + MAX_VALUE;
     if (isRunning && codeIndex < cleanCode.length) {
         const cmd = cleanCode[codeIndex];
         cmdIndexEl.textContent = '#' + (codeIndex + 1);
@@ -1573,22 +1592,22 @@ function updateStats() {
     }
 }
 
+// =====================================================================
+// ГЛАВНАЯ ФИКСАЦИЯ: ПРАВИЛЬНАЯ НОРМАЛИЗАЦИЯ
+// =====================================================================
+
 function normalizeValue(val) {
     const range = MAX_VALUE - MIN_VALUE + 1;
     if (range <= 0) return MIN_VALUE;
     
-    // Приводим к диапазону [MIN_VALUE, MAX_VALUE]
-    val = val - MIN_VALUE;
-    val = val % range;
-    if (val < 0) val += range;
-    val = val + MIN_VALUE;
-    
-    return val;
+    // Приводим значение к диапазону [MIN_VALUE, MAX_VALUE]
+    // Используем математическое modulo, которое правильно работает с отрицательными
+    let result = ((val - MIN_VALUE) % range + range) % range + MIN_VALUE;
+    return result;
 }
 
 function normalizeInputValue(codePoint) {
-    if (codePoint >= 0 && codePoint <= 255) return codePoint;
-    return codePoint % 256;
+    return normalizeValue(codePoint);
 }
 
 function moveArrowVisual(index) {
@@ -1625,24 +1644,29 @@ function updateUI() {
     for (let i = 0; i < TAPE_SIZE; i++) {
         const cell = document.getElementById('cell-' + i);
         if (!cell) continue;
+        
         const val = memory[i];
-        document.getElementById('val-' + i).innerText = val;
+        const valEl = document.getElementById('val-' + i);
+        valEl.innerText = val;
+        valEl.className = 'cell-value';
+        if (val < 0) valEl.classList.add('negative');
+        else if (val > 0) valEl.classList.add('positive');
+        else valEl.classList.add('zero');
+        
         const asciiEl = document.getElementById('ascii-' + i);
         if (asciiEl) {
             let displayChar;
             let isPrintable = false;
-            let isOverflow = false;
             let isControl = false;
             let isCustom = false;
             
+            // Пытаемся получить символ для отображения
             const displayName = codeToDisplayChar(val);
             if (displayName !== null) {
                 displayChar = displayName;
-                
                 if (customAsciiReverse !== null && customAsciiReverse[val] !== undefined) {
                     isCustom = true;
                 }
-                
                 if (CONTROL_REVERSE[val] !== undefined || (val >= 0 && val <= 31) || val === 127) {
                     isControl = true;
                     isPrintable = false;
@@ -1650,25 +1674,9 @@ function updateUI() {
                     isPrintable = true;
                 }
             } else {
-                if (val >= 0 && val <= 0xFFFF) {
-                    try {
-                        const ch = String.fromCharCode(val);
-                        if (ch && !/[\u0000-\u001F\u007F]/.test(ch)) {
-                            displayChar = ch;
-                            isPrintable = true;
-                        } else {
-                            displayChar = 'U+' + val.toString(16).toUpperCase();
-                            isPrintable = false;
-                        }
-                    } catch (e) {
-                        displayChar = 'U+' + val.toString(16).toUpperCase();
-                        isPrintable = false;
-                    }
-                } else {
-                    displayChar = '[' + val + ']';
-                    isPrintable = false;
-                    isOverflow = true;
-                }
+                // Если символ не найден - показываем значение без скобок
+                displayChar = String(val);
+                isPrintable = false;
             }
             
             asciiEl.textContent = displayChar;
@@ -1676,8 +1684,9 @@ function updateUI() {
             if (!isPrintable) asciiEl.classList.add('non-printable');
             if (isControl) asciiEl.classList.add('control-char');
             if (isCustom) asciiEl.classList.add('custom-char');
-            if (isOverflow) asciiEl.classList.add('overflow');
+            if (val < 0 || val > 255) asciiEl.classList.add('overflow');
         }
+        
         if (i === ptr) cell.classList.add('active');
         else cell.classList.remove('active');
     }
@@ -1768,7 +1777,7 @@ function executeRawOp(cmd, updateUI_ = true) {
                 memory[ptr] = normalizeInputValue(charToCode(char));
                 inputIndex++;
             } else {
-                memory[ptr] = 0;
+                memory[ptr] = normalizeValue(0);
             }
             codeIndex++;
             break;
@@ -2010,11 +2019,6 @@ function updateMemoryMode() {
     memoryMode = document.getElementById('memoryModeSelect').value;
 }
 
-function updateRange() {
-    document.getElementById('minValueInput').value = 0;
-    document.getElementById('maxValueInput').value = 255;
-}
-
 function applyRange() {
     const minInput = document.getElementById('minValueInput');
     const maxInput = document.getElementById('maxValueInput');
@@ -2022,30 +2026,28 @@ function applyRange() {
     let minVal = parseInt(minInput.value);
     let maxVal = parseInt(maxInput.value);
     
-    // Проверка на валидность
-    if (isNaN(minVal)) minVal = 0;
-    if (isNaN(maxVal)) maxVal = 255;
+    if (isNaN(minVal)) minVal = -128;
+    if (isNaN(maxVal)) maxVal = 127;
     
-    // Ограничения (0-255 для стандартного Brainfuck)
-    if (minVal < 0) minVal = 0;
-    if (maxVal > 255) maxVal = 255;
+    const MIN_ALLOWED = -Infinity;
+    const MAX_ALLOWED = Infinity;
+    
+    if (minVal < MIN_ALLOWED) minVal = MIN_ALLOWED;
+    if (maxVal > MAX_ALLOWED) maxVal = MAX_ALLOWED;
     if (minVal > maxVal) {
-        // Меняем местами, если min > max
         [minVal, maxVal] = [maxVal, minVal];
     }
     
+    ALLOW_NEGATIVE = (minVal < 0);
     MIN_VALUE = minVal;
     MAX_VALUE = maxVal;
     RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
     
-    // Обновляем отображение
     minInput.value = MIN_VALUE;
     maxInput.value = MAX_VALUE;
     
-    // Применяем к существующим ячейкам
     for (let i = 0; i < memory.length; i++) {
-        if (memory[i] < MIN_VALUE) memory[i] = MIN_VALUE;
-        if (memory[i] > MAX_VALUE) memory[i] = MAX_VALUE;
+        memory[i] = normalizeValue(memory[i]);
     }
     
     updateUI();
@@ -2104,26 +2106,31 @@ function compileBrainfuckToJS(code, input, tapeSize) {
     jsCode.push(`  const inputStr = \`${(input || '').replace(/`/g, '\\`')}\`;`);
     jsCode.push(`  let outputParts = [];`);
     jsCode.push(``);
+    jsCode.push(`  const MIN_VALUE = ${MIN_VALUE};`);
+    jsCode.push(`  const MAX_VALUE = ${MAX_VALUE};`);
+    jsCode.push(`  const RANGE_SIZE = ${RANGE_SIZE};`);
+    jsCode.push(``);
     jsCode.push(`  function normalize(v) {`);
-    jsCode.push(`    v = v % 256;`);
-    jsCode.push(`    if (v < 0) v += 256;`);
-    jsCode.push(`    return v;`);
+    jsCode.push(`    const range = RANGE_SIZE;`);
+    jsCode.push(`    if (range <= 0) return MIN_VALUE;`);
+    jsCode.push(`    // Правильное математическое modulo`);
+    jsCode.push(`    return ((v - MIN_VALUE) % range + range) % range + MIN_VALUE;`);
     jsCode.push(`  }`);
     jsCode.push(``);
     jsCode.push(`  function getCharCode(char) {`);
-    jsCode.push(`    const code = char.charCodeAt(0) || 0;`);
-    jsCode.push(`    return code % 256;`);
+    jsCode.push(`    const code = char.codePointAt(0) || 0;`);
+    jsCode.push(`    return normalize(code);`);
     jsCode.push(`  }`);
     jsCode.push(``);
     jsCode.push(`  function outputChar(code) {`);
+    jsCode.push(`    // Пытаемся вывести как Unicode символ`);
     jsCode.push(`    if (code >= 0 && code <= 0x10FFFF) {`);
     jsCode.push(`      try {`);
-    jsCode.push(`        if (code === 0) {`);
-    jsCode.push(`          outputParts.push('\\x00');`);
+    jsCode.push(`        const ch = String.fromCodePoint(code);`);
+    jsCode.push(`        if (ch && code >= 32) {`);
+    jsCode.push(`          outputParts.push(ch);`);
     jsCode.push(`        } else {`);
-    jsCode.push(`          const ch = String.fromCharCode(code);`);
-    jsCode.push(`          if (ch) outputParts.push(ch);`);
-    jsCode.push(`          else outputParts.push('[' + code + ']');`);
+    jsCode.push(`          outputParts.push('[' + code + ']');`);
     jsCode.push(`        }`);
     jsCode.push(`      } catch(e) {`);
     jsCode.push(`        outputParts.push('[' + code + ']');`);
@@ -2174,7 +2181,7 @@ function compileBrainfuckToJS(code, input, tapeSize) {
                     jsCode.push(`${indentStr}  memory[ptr] = getCharCode(inputStr[inputIndex]);`);
                     jsCode.push(`${indentStr}  inputIndex++;`);
                     jsCode.push(`${indentStr}} else {`);
-                    jsCode.push(`${indentStr}  memory[ptr] = 0;`);
+                    jsCode.push(`${indentStr}  memory[ptr] = normalize(0);`);
                     jsCode.push(`${indentStr}}`);
                     break;
             }
@@ -2310,18 +2317,18 @@ function compileToJS() {
 
 window.onload = function() {
     switchLanguage('en');
-    document.getElementById('minValueInput').value = 0;
-    document.getElementById('maxValueInput').value = 255;
-    MIN_VALUE = 0;
-    MAX_VALUE = 255;
+    document.getElementById('minValueInput').value = -128;
+    document.getElementById('maxValueInput').value = 127;
+    MIN_VALUE = -128;
+    MAX_VALUE = 127;
     RANGE_SIZE = 256;
+    ALLOW_NEGATIVE = true;
     initTape();
     updateUI();
     window.addEventListener('resize', function() { moveArrowVisual(ptr); });
     updateExamplesDropdown();
     updateCodeHighlight();
     updateMemoryMode();
-    updateRange();
     updateStats();
     updateAsciiBadge();
     updateAsciiTableDisplay();
