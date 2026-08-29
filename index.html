@@ -741,9 +741,9 @@
         
         <div class="range-control">
             <label id="labelRange">Range:</label>
-            <input type="number" id="minValueInput" value="0" disabled>
+            <input type="number" id="minValueInput" value="0">
             <span>—</span>
-            <input type="number" id="maxValueInput" value="255" disabled>
+            <input type="number" id="maxValueInput" value="255">
             <button class="btn" id="btnApplyRange" onclick="applyRange()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
         
@@ -2277,8 +2277,6 @@ window.onload = function() {
     switchLanguage('en');
     document.getElementById('minValueInput').value = 0;
     document.getElementById('maxValueInput').value = 255;
-    document.getElementById('minValueInput').disabled = true;
-    document.getElementById('maxValueInput').disabled = true;
     MIN_VALUE = 0;
     MAX_VALUE = 255;
     RANGE_SIZE = 256;
