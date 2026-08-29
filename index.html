@@ -2020,8 +2020,7 @@ function applyRange() {
 function resizeTape() {
     const inputEl = document.getElementById('tapeSizeInput');
     let newSize = parseInt(inputEl.value);
-    if (isNaN(newSize) || newSize < 10) newSize = 10;
-    else if (newSize > 30000) newSize = 30000;
+    if (isNaN(newSize) || newSize < 1) newSize = 1;
     inputEl.value = newSize;
     stopCode();
     const oldMemory = memory;
