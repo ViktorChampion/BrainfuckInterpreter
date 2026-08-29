@@ -1574,8 +1574,15 @@ function updateStats() {
 }
 
 function normalizeValue(val) {
-    val = val % 256;
-    if (val < 0) val += 256;
+    const range = MAX_VALUE - MIN_VALUE + 1;
+    if (range <= 0) return MIN_VALUE;
+    
+    // Приводим к диапазону [MIN_VALUE, MAX_VALUE]
+    val = val - MIN_VALUE;
+    val = val % range;
+    if (val < 0) val += range;
+    val = val + MIN_VALUE;
+    
     return val;
 }
 
@@ -2009,12 +2016,40 @@ function updateRange() {
 }
 
 function applyRange() {
-    MIN_VALUE = 0;
-    MAX_VALUE = 255;
-    RANGE_SIZE = 256;
-    document.getElementById('minValueInput').value = 0;
-    document.getElementById('maxValueInput').value = 255;
+    const minInput = document.getElementById('minValueInput');
+    const maxInput = document.getElementById('maxValueInput');
+    
+    let minVal = parseInt(minInput.value);
+    let maxVal = parseInt(maxInput.value);
+    
+    // Проверка на валидность
+    if (isNaN(minVal)) minVal = 0;
+    if (isNaN(maxVal)) maxVal = 255;
+    
+    // Ограничения (0-255 для стандартного Brainfuck)
+    if (minVal < 0) minVal = 0;
+    if (maxVal > 255) maxVal = 255;
+    if (minVal > maxVal) {
+        // Меняем местами, если min > max
+        [minVal, maxVal] = [maxVal, minVal];
+    }
+    
+    MIN_VALUE = minVal;
+    MAX_VALUE = maxVal;
+    RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
+    
+    // Обновляем отображение
+    minInput.value = MIN_VALUE;
+    maxInput.value = MAX_VALUE;
+    
+    // Применяем к существующим ячейкам
+    for (let i = 0; i < memory.length; i++) {
+        if (memory[i] < MIN_VALUE) memory[i] = MIN_VALUE;
+        if (memory[i] > MAX_VALUE) memory[i] = MAX_VALUE;
+    }
+    
     updateUI();
+    updateStats();
 }
 
 function resizeTape() {
