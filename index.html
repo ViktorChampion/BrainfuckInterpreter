@@ -746,7 +746,7 @@
             <input type="number" id="maxValueInput" value="255">
             <button class="btn" id="btnApplyRange" onclick="applyRange()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
-        
+
         <span class="execution-status" id="execStatus">⏳ Running...</span>
         
         <div class="current-command-info" id="commandInfo">
@@ -877,13 +877,11 @@ const CONTROL_NAMES = {
     'DEL': 127, 'SP': 32
 };
 
-// Создаем массив для быстрого доступа: код -> имя управляющего символа
 const CONTROL_REVERSE = {};
 for (const [name, code] of Object.entries(CONTROL_NAMES)) {
     CONTROL_REVERSE[code] = name;
 }
 
-// Список кодов управляющих символов для быстрой проверки
 const CONTROL_CODES = new Set(Object.values(CONTROL_NAMES));
 
 function getStandardAsciiMap() {
@@ -936,20 +934,18 @@ function codeToCharForOutput(code) {
         }
         return charName;
     }
-    // Проверяем стандартные управляющие - ВОЗВРАЩАЕМ СИМВОЛ, а не имя
+    // Проверяем стандартные управляющие
     if (CONTROL_REVERSE[code] !== undefined) {
         const behavior = getControlBehavior(CONTROL_REVERSE[code]);
         if (behavior !== null) {
             return behavior;
         }
-        // Если поведение не найдено, возвращаем пустую строку для NUL и т.д.
         return '';
     }
     // Пытаемся вывести как Unicode символ
     if (code >= 0 && code <= 0x10FFFF) {
         try {
             const ch = String.fromCodePoint(code);
-            // Проверяем, что это не управляющий символ
             if (ch && !CONTROL_CODES.has(code) && code >= 32) {
                 return ch;
             }
@@ -963,7 +959,7 @@ function codeToDisplayChar(code) {
     if (customAsciiReverse !== null && customAsciiReverse[code] !== undefined) {
         return customAsciiReverse[code];
     }
-    // Проверяем стандартные управляющие - ВОЗВРАЩАЕМ ИМЯ для отображения
+    // Проверяем стандартные управляющие
     if (CONTROL_REVERSE[code] !== undefined) {
         return CONTROL_REVERSE[code];
     }
@@ -1431,9 +1427,9 @@ const translations = {
 };
 
 let TAPE_SIZE = 1000;
-let MIN_VALUE = -128;
-let MAX_VALUE = 127;
-let RANGE_SIZE = 256;
+let MIN_VALUE = -Infinity;
+let MAX_VALUE = Infinity;
+let RANGE_SIZE = Infinity;
 let ALLOW_NEGATIVE = true;
 
 let memory = new Array(TAPE_SIZE).fill(0);
@@ -1489,7 +1485,7 @@ const bfkExamples = {
         input: "A"
     },
     len: {
-        code: ">>>>,[>,]<[<]>[[-]>[>]>+<<[<]>]>>++++++++++<[>[->+>+<<]>[-<<-[>]>>>[<[-<->]<[>]>>[[-]>>+<]>-<]<<]>>>+<<[-<<+>>]<<<]>>>>>>++++++++++<[>[->+>+<<]>[-<<-[>]>>>[<[-<->]<[>]>>[[-]>>+<]>-<]<<]>>>+<<[-<<+>>]<<<]>>>>>[->+<]>[<++++++++[->++++++<]>.<<<<<]",
+        code: ">>,[>,]<[[-]+<]>[>]<[-<[<]<+>>[>]<]<[->+>>+<<<]+>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<[>]>>>[-<+<<+>>>]<[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<<[>]>>>[-<<<+>>>]<<<[>++++++++[-<++++++>]<.>++++++++[-<------>]<[->+>+<<]]>>[-<<<---------->>>]<<++++++++[-<++++++>]<.>++++++++[-<------>]>[-<++++++++++[-<<---------->>]>]<<[-<---------->]++++++++[-<++++++>]<.",
         input: "Hello, World!"
     }
 };
@@ -1563,7 +1559,13 @@ function updateCommandInfo() {
     const cmdDescEl = document.getElementById('cmdDesc');
     const cellInfoEl = document.getElementById('cellInfo');
     const t = translations[currentLang];
-    if (cellInfoEl) cellInfoEl.textContent = 'Range: ' + MIN_VALUE + '..' + MAX_VALUE;
+    if (cellInfoEl) {
+        if (isFinite(MIN_VALUE) && isFinite(MAX_VALUE)) {
+            cellInfoEl.textContent = 'Range: ' + MIN_VALUE + '..' + MAX_VALUE;
+        } else {
+            cellInfoEl.textContent = 'Range: ∞ (unlimited)';
+        }
+    }
     if (isRunning && codeIndex < cleanCode.length) {
         const cmd = cleanCode[codeIndex];
         cmdIndexEl.textContent = '#' + (codeIndex + 1);
@@ -1593,17 +1595,19 @@ function updateStats() {
 }
 
 // =====================================================================
-// ГЛАВНАЯ ФИКСАЦИЯ: ПРАВИЛЬНАЯ НОРМАЛИЗАЦИЯ
+// НОРМАЛИЗАЦИЯ ДЛЯ БЕСКОНЕЧНЫХ ДИАПАЗОНОВ
 // =====================================================================
 
 function normalizeValue(val) {
+    // Если диапазон бесконечный - просто возвращаем значение
+    if (!isFinite(MIN_VALUE) || !isFinite(MAX_VALUE)) {
+        return val;
+    }
+    
+    // Иначе - нормализация в диапазон
     const range = MAX_VALUE - MIN_VALUE + 1;
     if (range <= 0) return MIN_VALUE;
-    
-    // Приводим значение к диапазону [MIN_VALUE, MAX_VALUE]
-    // Используем математическое modulo, которое правильно работает с отрицательными
-    let result = ((val - MIN_VALUE) % range + range) % range + MIN_VALUE;
-    return result;
+    return ((val - MIN_VALUE) % range + range) % range + MIN_VALUE;
 }
 
 function normalizeInputValue(codePoint) {
@@ -2023,17 +2027,24 @@ function applyRange() {
     const minInput = document.getElementById('minValueInput');
     const maxInput = document.getElementById('maxValueInput');
     
-    let minVal = parseInt(minInput.value);
-    let maxVal = parseInt(maxInput.value);
+    let minVal, maxVal;
     
-    if (isNaN(minVal)) minVal = -128;
-    if (isNaN(maxVal)) maxVal = 127;
+    // Парсим значение с поддержкой Infinity
+    const parseValue = (str) => {
+        str = str.trim().toLowerCase();
+        if (str === 'infinity' || str === '+infinity') return Infinity;
+        if (str === '-infinity') return -Infinity;
+        return parseFloat(str);
+    };
     
-    const MIN_ALLOWED = -Infinity;
-    const MAX_ALLOWED = Infinity;
+    minVal = parseValue(minInput.value);
+    maxVal = parseValue(maxInput.value);
     
-    if (minVal < MIN_ALLOWED) minVal = MIN_ALLOWED;
-    if (maxVal > MAX_ALLOWED) maxVal = MAX_ALLOWED;
+    // Если парсинг не удался - устанавливаем значения по умолчанию
+    if (isNaN(minVal)) minVal = 0;
+    if (isNaN(maxVal)) maxVal = 255;
+    
+    // Если min > max - меняем местами
     if (minVal > maxVal) {
         [minVal, maxVal] = [maxVal, minVal];
     }
@@ -2041,10 +2052,24 @@ function applyRange() {
     ALLOW_NEGATIVE = (minVal < 0);
     MIN_VALUE = minVal;
     MAX_VALUE = maxVal;
-    RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
     
-    minInput.value = MIN_VALUE;
-    maxInput.value = MAX_VALUE;
+    if (isFinite(MIN_VALUE) && isFinite(MAX_VALUE)) {
+        RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
+    } else {
+        RANGE_SIZE = Infinity;
+    }
+    
+    // Обновляем поля ввода с правильным отображением
+    if (isFinite(MIN_VALUE)) {
+        minInput.value = MIN_VALUE;
+    } else {
+        minInput.value = MIN_VALUE === -Infinity ? '-Infinity' : 'Infinity';
+    }
+    if (isFinite(MAX_VALUE)) {
+        maxInput.value = MAX_VALUE;
+    } else {
+        maxInput.value = MAX_VALUE === Infinity ? 'Infinity' : '-Infinity';
+    }
     
     for (let i = 0; i < memory.length; i++) {
         memory[i] = normalizeValue(memory[i]);
@@ -2074,7 +2099,7 @@ function resizeTape() {
 }
 
 // =====================================================================
-// КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT
+// КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT (С ПОДДЕРЖКОЙ БЕСКОНЕЧНОСТИ)
 // =====================================================================
 
 function compileBrainfuckToJS(code, input, tapeSize) {
@@ -2106,14 +2131,22 @@ function compileBrainfuckToJS(code, input, tapeSize) {
     jsCode.push(`  const inputStr = \`${(input || '').replace(/`/g, '\\`')}\`;`);
     jsCode.push(`  let outputParts = [];`);
     jsCode.push(``);
-    jsCode.push(`  const MIN_VALUE = ${MIN_VALUE};`);
-    jsCode.push(`  const MAX_VALUE = ${MAX_VALUE};`);
-    jsCode.push(`  const RANGE_SIZE = ${RANGE_SIZE};`);
+    
+    // Передаем значения MIN_VALUE и MAX_VALUE в компилятор
+    const minValStr = isFinite(MIN_VALUE) ? String(MIN_VALUE) : (MIN_VALUE === -Infinity ? '-Infinity' : 'Infinity');
+    const maxValStr = isFinite(MAX_VALUE) ? String(MAX_VALUE) : (MAX_VALUE === Infinity ? 'Infinity' : '-Infinity');
+    
+    jsCode.push(`  const MIN_VALUE = ${minValStr};`);
+    jsCode.push(`  const MAX_VALUE = ${maxValStr};`);
     jsCode.push(``);
     jsCode.push(`  function normalize(v) {`);
-    jsCode.push(`    const range = RANGE_SIZE;`);
+    jsCode.push(`    // Если диапазон бесконечный - просто возвращаем значение`);
+    jsCode.push(`    if (!isFinite(MIN_VALUE) || !isFinite(MAX_VALUE)) {`);
+    jsCode.push(`      return v;`);
+    jsCode.push(`    }`);
+    jsCode.push(`    // Иначе - нормализация в диапазон`);
+    jsCode.push(`    const range = MAX_VALUE - MIN_VALUE + 1;`);
     jsCode.push(`    if (range <= 0) return MIN_VALUE;`);
-    jsCode.push(`    // Правильное математическое modulo`);
     jsCode.push(`    return ((v - MIN_VALUE) % range + range) % range + MIN_VALUE;`);
     jsCode.push(`  }`);
     jsCode.push(``);
@@ -2317,12 +2350,16 @@ function compileToJS() {
 
 window.onload = function() {
     switchLanguage('en');
-    document.getElementById('minValueInput').value = -128;
-    document.getElementById('maxValueInput').value = 127;
-    MIN_VALUE = -128;
-    MAX_VALUE = 127;
+    
+    // Устанавливаем значения по умолчанию для полей ввода
+    document.getElementById('minValueInput').value = '0';
+    document.getElementById('maxValueInput').value = '255';
+    
+    MIN_VALUE = 0;
+    MAX_VALUE = 255;
     RANGE_SIZE = 256;
-    ALLOW_NEGATIVE = true;
+    ALLOW_NEGATIVE = false;
+    
     initTape();
     updateUI();
     window.addEventListener('resize', function() { moveArrowVisual(ptr); });
@@ -2332,7 +2369,7 @@ window.onload = function() {
     updateStats();
     updateAsciiBadge();
     updateAsciiTableDisplay();
-};
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
