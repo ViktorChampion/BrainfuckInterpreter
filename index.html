@@ -1360,7 +1360,8 @@ const translations = {
             logicn: "Logical AND",
             logicno: "Logical NOT",
             codeofsymb: "ASCII code of a char",
-            len: "Length of input"
+            len: "Length of input",
+            bf2: "Brainfuck with 2 commands"
         },
         hints: [
             { cmd: '>', desc: 'Move pointer right' },
@@ -1408,7 +1409,8 @@ const translations = {
             logicn: "Логическое И",
             logicno: "Логическое НЕ",
             codeofsymb: "ASCII-код символа",
-            len: "Длина инпута"
+            len: "Длина инпута",
+            bf2: "Brainfuck с 2 командами"
         },
         hints: [
             { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -1487,6 +1489,14 @@ const bfkExamples = {
     len: {
         code: ">>,[>,]<[[-]+<]>[>]<[-<[<]<+>>[>]<]<[->+>>+<<<]+>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<[>]>>>[-<+<<+>>>]<[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<<[>]>>>[-<<<+>>>]<<<[>++++++++[-<++++++>]<.>++++++++[-<------>]<[->+>+<<]]>>[-<<<---------->>>]<<++++++++[-<++++++>]<.>++++++++[-<------>]>[-<++++++++++[-<<---------->>]>]<<[-<---------->]++++++++[-<++++++>]<.",
         input: "Hello, World!"
+    },
+    bf2: {
+        code: ">>>,[>,]<[<]>[<<<+>++++++++[->>-----<<]>>---[<<<->>.>[-]]<<<[>>+<<-]>>[->+<]>>]",
+        input: "+++++++++++++++++++++++++++++++++."
+    },
+    bf3: {
+        code: ">+>+>+>>>,[>,]<[<]>[<++++++++[->-----<]>---[<<<<<->>>>>[-<+>]]<[->+<]>--[<<<<->>>>[-<+>]]<[->+<]>-[<<<->>>[-]]<<<<<[->>>+<<<]>[->>-<<]>[->.<]>[->+<]+<+<+>>>>>]",
+        input: "++++++++++++++++++++++++++++++++.+.-.+.-----------------------..+++++++++++++++++++++++.-...+.-----------------------.++++++++++++++++++++++.+..."
     }
 };
 
@@ -1974,6 +1984,8 @@ function updateExamplesDropdown() {
     select.innerHTML += '<option value="logicno">' + t.examples.logicno + '</option>';
     select.innerHTML += '<option value="codeofsymb">' + t.examples.codeofsymb + '</option>';
     select.innerHTML += '<option value="len">' + t.examples.len + '</option>';
+    select.innerHTML += '<option value="bf2">' + t.examples.bf2 + '</option>';
+    select.innerHTML += '<option value="bf3">' + t.examples.bf3 + '</option>';
     select.value = selectedValue;
 }
 
