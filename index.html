@@ -1362,7 +1362,8 @@ const translations = {
             codeofsymb: "ASCII code of a char",
             len: "Length of input",
             bf2: "Brainfuck with 2 commands",
-            bf3: "Brainfuck with 3 commands"
+            bf3: "Brainfuck with 3 commands",
+            bf4: "Brainfuck with 4 commands"
         },
         hints: [
             { cmd: '>', desc: 'Move pointer right' },
@@ -1412,7 +1413,8 @@ const translations = {
             codeofsymb: "ASCII-код символа",
             len: "Длина инпута",
             bf2: "Brainfuck с 2 командами",
-            bf3: "Brainfuck с 3 командами"
+            bf3: "Brainfuck с 3 командами",
+            bf4: "Brainfuck с 4 командами"
         },
         hints: [
             { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -1493,12 +1495,16 @@ const bfkExamples = {
         input: "Hello, World!"
     },
     bf2: {
-        code: ">>>,[>,]<[<]>[<<<+>++++++++[->>-----<<]>>---[<<<->>.>[-]]<<<[>>+<<-]>>[->+<]>>]",
+        code: "[This Brainfuck supports the plus and dot commands. Anything other than a plus is a dot]\n>>>,[>,]<[<]>[<<<+>++++++++[->>-----<<]>>---[<<<->>.>[-]]<<<[>>+<<-]>>[->+<]>>]",
         input: "+++++++++++++++++++++++++++++++++."
     },
     bf3: {
-        code: ">+>+>+>>>,[>,]<[<]>[<++++++++[->-----<]>---[<<<<<->>>>>[-<+>]]<[->+<]>--[<<<<->>>>[-<+>]]<[->+<]>-[<<<->>>[-]]<<<<<[->>>+<<<]>[->>-<<]>[->.<]>[->+<]+<+<+>>>>>]",
+        code: "[This Brainfuck supports the plus, minus, and dot commands]\n>+>+>+>>>,[>,]<[<]>[<++++++++[->-----<]>---[<<<<<->>>>>[-<+>]]<[->+<]>--[<<<<->>>>[-<+>]]<[->+<]>-[<<<->>>[-]]<<<<<[->>>+<<<]>[->>-<<]>[->.<]>[->+<]+<+<+>>>>>]",
         input: "++++++++++++++++++++++++++++++++.+.-.+.-----------------------..+++++++++++++++++++++++.-...+.-----------------------.++++++++++++++++++++++.+..."
+    },
+    bf4: {
+        code: "[This Brainfuck supports the plus, minus, comma, and dot commands. Input is written on the next line. Put \\n even if there is no input]\n>+>+>+>+>>>,----------[>,----------]<[<]>[<++++++++[->----<]>-[[-<+>]<<<<<<->>>>>>]<[->+<]>-[[-<+>]<<<->>>]<[->+<]>-[[-<+>]<<<<<->>>>>]<[->+<]>-[[-]<<<<->>>>]<<<<<<[->>>>+<<<<]>[->>>-<<<]>[->>.<<]>[->,<]>[->+<]+<+<+<+>>>>>>]",
+        input: ",.,.,.,.,."
     }
 };
 
@@ -1988,6 +1994,7 @@ function updateExamplesDropdown() {
     select.innerHTML += '<option value="len">' + t.examples.len + '</option>';
     select.innerHTML += '<option value="bf2">' + t.examples.bf2 + '</option>';
     select.innerHTML += '<option value="bf3">' + t.examples.bf3 + '</option>';
+    select.innerHTML += '<option value="bf4">' + t.examples.bf4 + '</option>';
     select.value = selectedValue;
 }
 
