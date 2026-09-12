@@ -318,6 +318,50 @@
             white-space: nowrap;
         }
 
+        .eoi-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #181825;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .eoi-control label {
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .eoi-control select {
+            background: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            outline: none;
+            font-weight: bold;
+            cursor: pointer;
+            max-width: 140px;
+        }
+
+        .eoi-control input[type="number"] {
+            width: 60px;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px;
+            outline: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .eoi-control input[type="number"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
 .io-panel {
     display: flex;
     flex-direction: column;
@@ -747,6 +791,15 @@
             <button class="btn" id="btnApplyRange" onclick="applyRange()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
 
+        <div class="eoi-control">
+            <label id="labelEOI">End of Input:</label>
+            <select id="eoiModeSelect" onchange="updateEOIMode()">
+                <option value="zero" id="eoiOptZero">Set code:</option>
+                <option value="unchanged" id="eoiOptUnchanged">Leave unchanged</option>
+            </select>
+            <input type="number" id="eoiCharInput" value="0" title="Character code to write on EOF">
+        </div>
+
         <span class="execution-status" id="execStatus">⏳ Running...</span>
         
         <div class="current-command-info" id="commandInfo">
@@ -913,15 +966,23 @@ function getCurrentAsciiReverse() {
     return customAsciiReverse !== null ? customAsciiReverse : getStandardAsciiReverse();
 }
 
+// =====================================================================
+// ИСПРАВЛЕНО: фолбэк на codePointAt для символов вне карты
+// =====================================================================
 function charToCode(char) {
-    const map = getCurrentAsciiMap();
+    // 1. Управляющие имена (NUL, SOH, ...) — приоритетно
     if (CONTROL_NAMES[char] !== undefined) {
         return CONTROL_NAMES[char];
     }
+    // 2. Пользовательская/стандартная карта
+    const map = getCurrentAsciiMap();
     if (map[char] && map[char].length > 0) {
         return map[char][0];
     }
-    return 0;
+    // 3. Фолбэк — реальный Unicode code point символа.
+    //    normalizeValue приведёт его к диапазону ячейки (напр. 1072 → 48 при 0..255).
+    const cp = char.codePointAt(0);
+    return cp !== undefined ? cp : 0;
 }
 
 function codeToCharForOutput(code) {
@@ -1201,7 +1262,7 @@ function loadPreset(name) {
             '‹': [139], 'Œ': [140], 'Ž': [142], '‘': [145], '’': [146],
             '“': [147], '”': [148], '•': [149], '–': [150], '—': [151],
             '˜': [152], '™': [153], 'š': [154], '›': [155], 'œ': [156],
-            'ž': [158], 'Ÿ': [159], ' ': [160], '¡': [161], '¢': [162],
+            'ž': [158], 'Ÿ': [159], ' ': [160], '¡': [161], '¢': [162],
             '£': [163], '¤': [164], '¥': [165], '¦': [166], '§': [167],
             '¨': [168], '©': [169], 'ª': [170], '«': [171], '¬': [172],
             '®': [174], '¯': [175], '°': [176], '±': [177], '²': [178],
@@ -1327,6 +1388,10 @@ let optimizedCode = [];
 let totalRawCommands = 0;
 let totalOptimizedCommands = 0;
 
+// End of Input behavior
+let eoiMode = 'zero';          // 'zero' | 'unchanged'
+let eoiCharCode = 0;           // значение, записываемое при EOF (если eoiMode === 'zero')
+
 const translations = {
     en: {
         title: "Brainfuck Visualizer ⚡",
@@ -1350,6 +1415,9 @@ const translations = {
         cmdWaiting: "waiting",
         labelTapeSize: "Cells:",
         labelRange: "Range:",
+        labelEOI: "End of Input:",
+        eoiZero: "Set code:",
+        eoiUnchanged: "Leave unchanged",
         examples: {
             hello: "Hello World!",
             add: "Adding two digits (1+2)",
@@ -1401,6 +1469,9 @@ const translations = {
         cmdWaiting: "ожидание",
         labelTapeSize: "Ячеек:",
         labelRange: "Диапазон:",
+        labelEOI: "Конец ввода:",
+        eoiZero: "Код:",
+        eoiUnchanged: "Без изменений",
         examples: {
             hello: "Привет, мир! (Hello World)",
             add: "Сложение двух цифр (1+2)",
@@ -1531,6 +1602,9 @@ function switchLanguage(lang) {
     document.getElementById('execStatus').innerText = t.execStatus;
     if (document.getElementById('labelTapeSize')) document.getElementById('labelTapeSize').innerText = t.labelTapeSize;
     if (document.getElementById('labelRange')) document.getElementById('labelRange').innerText = t.labelRange;
+    if (document.getElementById('labelEOI')) document.getElementById('labelEOI').innerText = t.labelEOI;
+    if (document.getElementById('eoiOptZero')) document.getElementById('eoiOptZero').innerText = t.eoiZero;
+    if (document.getElementById('eoiOptUnchanged')) document.getElementById('eoiOptUnchanged').innerText = t.eoiUnchanged;
     if (document.getElementById('asciiTitle')) document.getElementById('asciiTitle').innerText = t.asciiTitle;
     updateExamplesDropdown();
     const grid = document.getElementById('hintGrid');
@@ -1799,7 +1873,12 @@ function executeRawOp(cmd, updateUI_ = true) {
                 memory[ptr] = normalizeInputValue(charToCode(char));
                 inputIndex++;
             } else {
-                memory[ptr] = normalizeValue(0);
+                // End of Input
+                if (eoiMode === 'unchanged') {
+                    // ничего не делаем — ячейка сохраняет прежнее значение
+                } else {
+                    memory[ptr] = normalizeValue(eoiCharCode);
+                }
             }
             codeIndex++;
             break;
@@ -2044,6 +2123,30 @@ function updateMemoryMode() {
     memoryMode = document.getElementById('memoryModeSelect').value;
 }
 
+// =====================================================================
+// END OF INPUT — обработчики
+// =====================================================================
+
+function updateEOIMode() {
+    eoiMode = document.getElementById('eoiModeSelect').value;
+    const charInput = document.getElementById('eoiCharInput');
+    if (eoiMode === 'unchanged') {
+        charInput.disabled = true;
+    } else {
+        charInput.disabled = false;
+    }
+}
+
+function updateEOIChar() {
+    const charInput = document.getElementById('eoiCharInput');
+    let v = parseInt(charInput.value);
+    if (isNaN(v)) v = 0;
+    if (v < 0) v = 0;
+    if (v > 1114111) v = 1114111;
+    eoiCharCode = v;
+    charInput.value = v;
+}
+
 function applyRange() {
     const minInput = document.getElementById('minValueInput');
     const maxInput = document.getElementById('maxValueInput');
@@ -2120,7 +2223,7 @@ function resizeTape() {
 }
 
 // =====================================================================
-// КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT (С ПОДДЕРЖКОЙ БЕСКОНЕЧНОСТИ)
+// КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT (С ПОДДЕРЖКОЙ БЕСКОНЕЧНОСТИ + EOI)
 // =====================================================================
 
 function compileBrainfuckToJS(code, input, tapeSize) {
@@ -2235,7 +2338,12 @@ function compileBrainfuckToJS(code, input, tapeSize) {
                     jsCode.push(`${indentStr}  memory[ptr] = getCharCode(inputStr[inputIndex]);`);
                     jsCode.push(`${indentStr}  inputIndex++;`);
                     jsCode.push(`${indentStr}} else {`);
-                    jsCode.push(`${indentStr}  memory[ptr] = normalize(0);`);
+                    if (eoiMode === 'unchanged') {
+                        jsCode.push(`${indentStr}  // EOF: leave cell unchanged`);
+                    } else {
+                        const eoiValStr = isFinite(eoiCharCode) ? String(eoiCharCode) : '0';
+                        jsCode.push(`${indentStr}  memory[ptr] = normalize(${eoiValStr});`);
+                    }
                     jsCode.push(`${indentStr}}`);
                     break;
             }
@@ -2380,6 +2488,14 @@ window.onload = function() {
     MAX_VALUE = 255;
     RANGE_SIZE = 256;
     ALLOW_NEGATIVE = false;
+    
+    // Инициализация End of Input
+    eoiMode = document.getElementById('eoiModeSelect').value;
+    eoiCharCode = parseInt(document.getElementById('eoiCharInput').value) || 0;
+    updateEOIMode();
+    
+    // Слушатель изменения значения EOI char
+    document.getElementById('eoiCharInput').addEventListener('input', updateEOIChar);
     
     initTape();
     updateUI();
