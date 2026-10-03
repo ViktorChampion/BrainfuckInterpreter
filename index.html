@@ -203,6 +203,7 @@
             position: relative;
             z-index: 1;
             line-height: 1.5;
+            tab-size: 4;
         }
 
         .code-highlight {
@@ -221,7 +222,9 @@
             white-space: pre-wrap;
             word-wrap: break-word;
             color: transparent;
-            overflow: hidden;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            tab-size: 4;
         }
 
         .code-highlight .highlight-char {
@@ -788,7 +791,7 @@
                 <option value="zero" id="eoiOptZero">Set code:</option>
                 <option value="unchanged" id="eoiOptUnchanged">Leave unchanged</option>
             </select>
-            <input type="number" id="eoiCharInput" value="0" title="Character code to write on EOF">
+            <input type="number" id="eoiCharInput" value="0" min="0" max="1114111" title="Character code to write on EOF">
         </div>
 
         <span class="execution-status" id="execStatus">⏳ Running...</span>
@@ -803,7 +806,6 @@
     
     <div class="stats">
         <span>Commands: <span class="num" id="totalCommands">0</span></span>
-        <span>Optimized: <span class="num" id="optimizedCommands">0</span></span>
         <span>Speed: <span class="num" id="cmdPerTick">1</span> cmd/tick</span>
         <span class="optimization-status" id="optStatus">🔍 Step-by-step</span>
         <span id="asciiTableBadge" class="badge badge-std">ASCII: Standard</span>
@@ -873,6 +875,8 @@
 
 const MAX_ITERATIONS = 50000000; // 50 млн команд за один запуск
 const CHUNK_SIZE = 100000;        // сколько команд выполнять за один тик
+const MAX_HISTORY = 10000;        // ограничение истории для - Step
+const MAX_RANGE_SIZE = 1000000;   // ограничение диапазона значений
 
 // =====================================================================
 // УПРАВЛЯЮЩИЕ СИМВОЛЫ И ИХ ПОВЕДЕНИЕ
@@ -1363,10 +1367,7 @@ function updateAsciiGroupTitles() {
 // =====================================================================
 
 let currentLang = 'en';
-let useOptimization = false;
-let optimizedCode = [];
 let totalRawCommands = 0;
-let totalOptimizedCommands = 0;
 
 let eoiMode = 'zero';
 let eoiCharCode = 0;
@@ -1485,10 +1486,8 @@ const translations = {
 };
 
 let TAPE_SIZE = 1000;
-let MIN_VALUE = -Infinity;
-let MAX_VALUE = Infinity;
-let RANGE_SIZE = Infinity;
-let ALLOW_NEGATIVE = true;
+let MIN_VALUE = 0;
+let MAX_VALUE = 255;
 
 let memory = new Array(TAPE_SIZE).fill(0);
 let memoryMode = "bounded";
@@ -1601,7 +1600,8 @@ function switchLanguage(lang) {
     });
     updateCommandInfo();
     updateAsciiBadge();
-    updateAsciiGroupTitles();
+    // Перерисовываем таблицу ASCII с новыми заголовками групп
+    updateAsciiTableDisplay();
 }
 
 function toggleLanguage() {
@@ -1612,17 +1612,37 @@ function updateCodeHighlight() {
     const textarea = document.getElementById('code');
     const highlight = document.getElementById('codeHighlight');
     const code = textarea.value;
-    let html = '';
-    for (let i = 0; i < code.length; i++) {
-        const char = code[i];
-        const escaped = char === ' ' ? '&nbsp;' : escapeHTML(char);
-        if (i === rawCodeIndex && isRunning && codeIndex < cleanCode.length) {
-            html += '<span class="highlight-char">' + escaped + '</span>';
-        } else {
-            html += escaped;
+    
+    // Экранируем весь текст один раз
+    const escapedAll = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/ /g, '&nbsp;');
+    
+    if (rawCodeIndex >= 0 && isRunning && codeIndex < cleanCode.length) {
+        // Подсвечиваем символ по индексу rawCodeIndex.
+        // Но escapedAll имеет другую длину из-за замен. Проще: разбить по символам.
+        let html = '';
+        for (let i = 0; i < code.length; i++) {
+            const char = code[i];
+            let esc;
+            if (char === ' ') esc = '&nbsp;';
+            else if (char === '&') esc = '&amp;';
+            else if (char === '<') esc = '&lt;';
+            else if (char === '>') esc = '&gt;';
+            else esc = char;
+            
+            if (i === rawCodeIndex) {
+                html += '<span class="highlight-char">' + esc + '</span>';
+            } else {
+                html += esc;
+            }
         }
+        highlight.innerHTML = html;
+    } else {
+        highlight.innerHTML = escapedAll;
     }
-    highlight.innerHTML = html;
 }
 
 function syncHighlightScroll() {
@@ -1656,12 +1676,11 @@ function updateCommandInfo() {
 
 function updateStats() {
     document.getElementById('totalCommands').textContent = totalRawCommands;
-    document.getElementById('optimizedCommands').textContent = totalOptimizedCommands;
     const speed = parseInt(document.getElementById('speed').value);
     if (speed === 0) {
         document.getElementById('cmdPerTick').textContent = '⚡ MAX';
-        document.getElementById('optStatus').textContent = '🔍 Step-by-step';
-        document.getElementById('optStatus').style.color = '#89b4fa';
+        document.getElementById('optStatus').textContent = '⚡ Instant (chunked)';
+        document.getElementById('optStatus').style.color = '#f9e2af';
     } else {
         document.getElementById('cmdPerTick').textContent = speed + ' cmd/s';
         document.getElementById('optStatus').textContent = '🔍 Step-by-step';
@@ -1682,12 +1701,8 @@ function normalizeInputValue(codePoint) {
 function moveArrowVisual(index) {
     const cell = document.getElementById('cell-' + index);
     const arrow = document.getElementById('arrow');
-    const container = document.getElementById('tapeContainer');
     if (cell && arrow) {
-        const scrollLeft = container ? container.scrollLeft : 0;
-        // offsetLeft у cell относительно .tape (position: relative), но .tape
-        // находится внутри .tape-container. Компенсируем scrollLeft.
-        arrow.style.left = (cell.offsetLeft + (cell.offsetWidth / 2) - scrollLeft) + 'px';
+        arrow.style.left = (cell.offsetLeft + cell.offsetWidth / 2) + 'px';
     }
 }
 
@@ -1789,6 +1804,9 @@ function saveHistory() {
         output: document.getElementById('output').value,
         inputIndex: inputIndex
     });
+    if (history.length > MAX_HISTORY) {
+        history.shift();
+    }
 }
 
 function prepareExecution() {
@@ -1802,10 +1820,7 @@ function prepareExecution() {
             mapToRawIndex.push(i);
         }
     }
-    useOptimization = false;
-    optimizedCode = [];
     totalRawCommands = cleanCode.length;
-    totalOptimizedCommands = cleanCode.length;
     updateStats();
 }
 
@@ -1929,7 +1944,6 @@ function executeAllStepsInstantNoOpt() {
             executeStepWithoutOptimization(false);
             totalIterations++;
             if (totalIterations >= MAX_ITERATIONS) {
-                // Лимит достигнут — останавливаемся
                 isStopped = true;
                 isRunning = false;
                 const badge = document.getElementById('execTimeBadge');
@@ -1955,7 +1969,6 @@ function executeAllStepsInstantNoOpt() {
             return;
         }
         
-        // Продолжаем через setTimeout, чтобы дать браузеру отрисовать кадр
         instantChunkTimer = setTimeout(runChunk, 0);
     }
     
@@ -1965,7 +1978,6 @@ function executeAllStepsInstantNoOpt() {
 function updateSpeed() {
     const speed = parseInt(document.getElementById('speed').value);
     document.getElementById('speedVal').innerText = speed;
-    useOptimization = false;
     if (!isRunning) {
         updateStats();
         return;
@@ -2077,8 +2089,11 @@ function stepBackward() {
     rawCodeIndex = prevState.rawCodeIndex;
     document.getElementById('output').value = prevState.output;
     inputIndex = prevState.inputIndex;
-    // Если история пуста после отката — значит мы в начале, но isRunning оставляем,
-    // чтобы пользователь мог продолжить/сделать шаг.
+    // Если история пуста — мы в самом начале, сбрасываем isRunning,
+    // чтобы Run начинал выполнение заново с чистой памятью.
+    if (history.length === 0) {
+        isRunning = false;
+    }
     updateUI();
 }
 
@@ -2128,9 +2143,7 @@ function clearAll() {
     memory.fill(0);
     ptr = 0;
     history = [];
-    optimizedCode = [];
     totalRawCommands = 0;
-    totalOptimizedCommands = 0;
     totalIterations = 0;
     const badge = document.getElementById('execTimeBadge');
     badge.textContent = '⏱️ --';
@@ -2162,11 +2175,8 @@ function updateMemoryMode() {
 function updateEOIMode() {
     eoiMode = document.getElementById('eoiModeSelect').value;
     const charInput = document.getElementById('eoiCharInput');
-    if (eoiMode === 'unchanged') {
-        charInput.disabled = true;
-    } else {
-        charInput.disabled = false;
-    }
+    charInput.disabled = (eoiMode === 'unchanged');
+    updateEOIChar();
 }
 
 function updateEOIChar() {
@@ -2193,15 +2203,12 @@ function applyRange() {
         [minVal, maxVal] = [maxVal, minVal];
     }
 
-    // Защита от слишком больших диапазонов
-    if (maxVal - minVal > 1000000) {
-        maxVal = minVal + 1000000;
+    if (maxVal - minVal > MAX_RANGE_SIZE) {
+        maxVal = minVal + MAX_RANGE_SIZE;
     }
 
-    ALLOW_NEGATIVE = (minVal < 0);
     MIN_VALUE = minVal;
     MAX_VALUE = maxVal;
-    RANGE_SIZE = MAX_VALUE - MIN_VALUE + 1;
 
     minInput.value = MIN_VALUE;
     maxInput.value = MAX_VALUE;
@@ -2243,7 +2250,7 @@ function resizeTape() {
 // КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT
 // =====================================================================
 
-function compileBrainfuckToJS(code, input, tapeSize, memMode) {
+function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiReverse) {
     const clean = code.split('').filter(c => '><+-.,[]'.includes(c)).join('');
     
     let bracketMap = {};
@@ -2257,9 +2264,18 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode) {
                 let start = stack.pop();
                 bracketMap[start] = i;
                 bracketMap[i] = start;
+            } else {
+                throw new Error('Unbalanced brackets: unexpected "]" at position ' + i);
             }
         }
     }
+    if (stack.length > 0) {
+        throw new Error('Unbalanced brackets: ' + stack.length + ' unclosed "["');
+    }
+    
+    // Сериализуем ASCII-карты в JS-код
+    const asciiMapJSON = JSON.stringify(asciiMap || {});
+    const asciiReverseJSON = JSON.stringify(asciiReverse || {});
     
     let jsCode = [];
     let indent = 0;
@@ -2280,6 +2296,25 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode) {
     jsCode.push(`  const MIN_VALUE = ${minValStr};`);
     jsCode.push(`  const MAX_VALUE = ${maxValStr};`);
     jsCode.push(``);
+    jsCode.push(`  const ASCII_MAP = ${asciiMapJSON};`);
+    jsCode.push(`  const ASCII_REVERSE = ${asciiReverseJSON};`);
+    jsCode.push(`  const CONTROL_NAMES = ${JSON.stringify(CONTROL_NAMES)};`);
+    jsCode.push(`  const CONTROL_REVERSE = ${JSON.stringify(CONTROL_REVERSE)};`);
+    jsCode.push(`  const CONTROL_CODES = new Set(Object.values(CONTROL_NAMES));`);
+    jsCode.push(``);
+    jsCode.push(`  function getControlBehavior(name) {`);
+    jsCode.push(`    const behaviors = {`);
+    jsCode.push(`      'LF': '\\n', 'CR': '\\r', 'TAB': '\\t', 'BS': '\\b',`);
+    jsCode.push(`      'FF': '\\f', 'VT': '\\v', 'NUL': '\\x00', 'BEL': '\\x07',`);
+    jsCode.push(`      'SO': '\\x0E', 'SI': '\\x0F', 'DLE': '\\x10', 'DC1': '\\x11',`);
+    jsCode.push(`      'DC2': '\\x12', 'DC3': '\\x13', 'DC4': '\\x14', 'NAK': '\\x15',`);
+    jsCode.push(`      'SYN': '\\x16', 'ETB': '\\x17', 'CAN': '\\x18', 'EM': '\\x19',`);
+    jsCode.push(`      'SUB': '\\x1A', 'ESC': '\\x1B', 'FS': '\\x1C', 'GS': '\\x1D',`);
+    jsCode.push(`      'RS': '\\x1E', 'US': '\\x1F', 'SP': ' ', 'DEL': '\\x7F'`);
+    jsCode.push(`    };`);
+    jsCode.push(`    return behaviors[name] !== undefined ? behaviors[name] : null;`);
+    jsCode.push(`  }`);
+    jsCode.push(``);
     jsCode.push(`  function normalize(v) {`);
     jsCode.push(`    const range = MAX_VALUE - MIN_VALUE + 1;`);
     jsCode.push(`    if (range <= 0) return MIN_VALUE;`);
@@ -2287,19 +2322,33 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode) {
     jsCode.push(`  }`);
     jsCode.push(``);
     jsCode.push(`  function getCharCode(char) {`);
-    jsCode.push(`    const code = char.codePointAt(0) || 0;`);
-    jsCode.push(`    return normalize(code);`);
+    jsCode.push(`    if (CONTROL_NAMES[char] !== undefined) return normalize(CONTROL_NAMES[char]);`);
+    jsCode.push(`    if (ASCII_MAP[char] && ASCII_MAP[char].length > 0) return normalize(ASCII_MAP[char][0]);`);
+    jsCode.push(`    const cp = char.codePointAt(0) || 0;`);
+    jsCode.push(`    return normalize(cp);`);
     jsCode.push(`  }`);
     jsCode.push(``);
     jsCode.push(`  function outputChar(code) {`);
-    jsCode.push(`    if (code >= 0 && code <= 0x10FFFF) {`);
+    jsCode.push(`    if (ASCII_REVERSE[code] !== undefined) {`);
+    jsCode.push(`      const charName = ASCII_REVERSE[code];`);
+    jsCode.push(`      const behavior = getControlBehavior(charName);`);
+    jsCode.push(`      if (behavior !== null) {`);
+    jsCode.push(`        outputParts.push(behavior);`);
+    jsCode.push(`      } else {`);
+    jsCode.push(`        outputParts.push(charName);`);
+    jsCode.push(`      }`);
+    jsCode.push(`      return;`);
+    jsCode.push(`    }`);
+    jsCode.push(`    if (CONTROL_REVERSE[code] !== undefined) {`);
+    jsCode.push(`      const behavior = getControlBehavior(CONTROL_REVERSE[code]);`);
+    jsCode.push(`      if (behavior !== null) {`);
+    jsCode.push(`        outputParts.push(behavior);`);
+    jsCode.push(`      }`);
+    jsCode.push(`      return;`);
+    jsCode.push(`    }`);
+    jsCode.push(`    if (code >= 0 && code <= 0x10FFFF && code >= 32 && !CONTROL_CODES.has(code)) {`);
     jsCode.push(`      try {`);
-    jsCode.push(`        const ch = String.fromCodePoint(code);`);
-    jsCode.push(`        if (ch && code >= 32) {`);
-    jsCode.push(`          outputParts.push(ch);`);
-    jsCode.push(`        } else {`);
-    jsCode.push(`          outputParts.push('[' + code + ']');`);
-    jsCode.push(`        }`);
+    jsCode.push(`        outputParts.push(String.fromCodePoint(code));`);
     jsCode.push(`      } catch(e) {`);
     jsCode.push(`        outputParts.push('[' + code + ']');`);
     jsCode.push(`      }`);
@@ -2392,7 +2441,9 @@ function runInWorker() {
     const memMode = document.getElementById('memoryModeSelect').value;
     
     try {
-        const jsProgram = compileBrainfuckToJS(code, input, tapeSize, memMode);
+        const asciiMap = getCurrentAsciiMap();
+        const asciiReverse = getCurrentAsciiReverse();
+        const jsProgram = compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiReverse);
         
         const workerCode = `
             self.onmessage = function(e) {
@@ -2440,6 +2491,10 @@ function runInWorker() {
                 document.getElementById('btnWorker').style.background = '';
                 document.getElementById('btnWorker').disabled = false;
                 
+                if (worker) {
+                    worker.terminate();
+                    worker = null;
+                }
                 URL.revokeObjectURL(workerUrl);
             } else if (e.data.type === 'error') {
                 document.getElementById('output').value = 'Error: ' + e.data.error;
@@ -2451,6 +2506,10 @@ function runInWorker() {
                 document.getElementById('btnWorker').style.background = '';
                 document.getElementById('btnWorker').disabled = false;
                 
+                if (worker) {
+                    worker.terminate();
+                    worker = null;
+                }
                 URL.revokeObjectURL(workerUrl);
             }
         };
@@ -2475,7 +2534,18 @@ function compileToJS() {
     const tapeSize = parseInt(document.getElementById('tapeSizeInput').value) || 1000;
     const memMode = document.getElementById('memoryModeSelect').value;
     
-    const jsProgram = compileBrainfuckToJS(code, input, tapeSize, memMode);
+    let jsProgram;
+    try {
+        const asciiMap = getCurrentAsciiMap();
+        const asciiReverse = getCurrentAsciiReverse();
+        jsProgram = compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiReverse);
+    } catch(e) {
+        document.getElementById('output').value = 'Compilation error: ' + e.message;
+        const badge = document.getElementById('execTimeBadge');
+        badge.textContent = '❌ Error';
+        badge.className = 'badge badge-warn';
+        return;
+    }
     
     console.log('=== COMPILED JS ===');
     console.log(jsProgram);
@@ -2514,8 +2584,6 @@ window.onload = function() {
     
     MIN_VALUE = 0;
     MAX_VALUE = 255;
-    RANGE_SIZE = 256;
-    ALLOW_NEGATIVE = false;
     
     eoiMode = document.getElementById('eoiModeSelect').value;
     updateEOIMode();
@@ -2533,7 +2601,6 @@ window.onload = function() {
     updateAsciiBadge();
     updateAsciiTableDisplay();
     
-    // Синхронизация прокрутки ленты со стрелкой
     document.getElementById('tapeContainer').addEventListener('scroll', function() {
         moveArrowVisual(ptr);
     });
