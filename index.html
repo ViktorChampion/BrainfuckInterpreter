@@ -114,6 +114,7 @@
 
         .cell-index {
             font-weight: bold;
+            cursor: pointer;
         }
 
         .cell-ascii {
@@ -127,6 +128,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            cursor: pointer;
         }
 
         .cell-ascii.non-printable {
@@ -247,6 +249,20 @@
             border-radius: 2px;
         }
 
+        .code-highlight .bracket-match {
+            background: rgba(249, 226, 175, 0.35);
+            color: transparent;
+            border-radius: 3px;
+            box-shadow: 0 0 6px rgba(249, 226, 175, 0.5);
+        }
+
+        .code-highlight .bracket-unmatched {
+            background: rgba(243, 139, 168, 0.35);
+            color: transparent;
+            border-radius: 3px;
+            box-shadow: 0 0 6px rgba(243, 139, 168, 0.5);
+        }
+
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -271,7 +287,8 @@
         .btn-ascii { background: #cba6f7; color: #11111b; }
         .btn-compile { background: #f9e2af; color: #11111b; }
         .btn-worker { background: #89b4fa; color: #11111b; }
-        
+        .btn-share { background: #cba6f7; color: #11111b; }
+
         .btn:disabled {
             background: #585b70;
             color: #a6adc8;
@@ -722,6 +739,264 @@
             font-family: monospace;
             font-size: 15px;
         }
+
+        .cell-name {
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            font-size: 9px;
+            color: var(--highlight-color);
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 3px;
+            pointer-events: none;
+            font-style: italic;
+        }
+        .cell.has-name { border-color: var(--highlight-color); }
+        .cell-name-editor {
+            position: fixed;
+            z-index: 2000;
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            gap: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .cell-name-editor input {
+            background: #181825;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            outline: none;
+            font-size: 13px;
+            width: 140px;
+        }
+        .cell-name-editor button {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .output-history-panel {
+            background: #181825;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            max-height: 280px;
+            display: flex;
+            flex-direction: column;
+        }
+        .output-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .output-history-header h3 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 16px;
+        }
+        .output-history-list {
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            flex-grow: 1;
+        }
+        .output-history-empty {
+            color: #6c7086;
+            font-style: italic;
+            font-size: 13px;
+            padding: 8px;
+        }
+        .output-history-row {
+            display: grid;
+            grid-template-columns: 50px 70px 80px 70px 70px 1fr;
+            gap: 8px;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+            align-items: center;
+        }
+        .output-history-row:hover {
+            background: rgba(137, 180, 250, 0.08);
+        }
+        .output-history-row.header {
+            color: #6c7086;
+            font-weight: bold;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: #181825;
+            z-index: 1;
+        }
+        .output-history-row .num-cell {
+            color: var(--text-color);
+        }
+        .output-history-row .coord-cell {
+            color: #6c7086;
+            font-size: 12px;
+        }
+        .output-history-row .char-cell {
+            color: var(--active-color);
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .output-history-row .char-cell.control-char {
+            color: #f9e2af;
+            font-size: 11px;
+            padding: 0 6px;
+            border-radius: 3px;
+            background: rgba(249, 226, 175, 0.1);
+        }
+        .output-history-row .char-cell.custom-char {
+            color: #89dceb;
+            background: rgba(137, 220, 235, 0.12);
+            padding: 0 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .output-history-row .char-cell.non-printable {
+            color: #cba6f7;
+            font-size: 11px;
+        }
+        .output-history-row .ptr-cell {
+            color: var(--highlight-color);
+        }
+        .output-history-row .val-cell {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .bf-gen-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .bf-gen-overlay.open { display: flex; }
+        .bf-gen {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+        }
+        .bf-gen h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+        }
+        .bf-gen .gen-hint {
+            color: #6c7086;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .bf-gen .gen-input {
+            width: 100%;
+            height: 80px;
+            background: #181825;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .bf-gen .gen-input:focus {
+            border-color: var(--accent-color);
+        }
+        .bf-gen .gen-result-block {
+            margin-top: 15px;
+            background: #181825;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .bf-gen .gen-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .bf-gen .gen-result-title {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        .bf-gen .gen-result-meta {
+            font-size: 12px;
+            color: #6c7086;
+        }
+        .bf-gen .gen-result-code {
+            background: #11111b;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 160px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+        .bf-gen .gen-result-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .bf-gen .gen-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .bf-gen .gen-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+        .bf-gen .gen-badge-fast {
+            background: rgba(166, 227, 161, 0.2);
+            color: #a6e3a1;
+        }
+        .bf-gen .gen-badge-slow {
+            background: rgba(243, 139, 168, 0.2);
+            color: #f38ba8;
+        }
+        .bf-gen .gen-error {
+            color: #f38ba8;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .bf-gen .gen-error.show { display: block; }
     </style>
 </head>
 <body>
@@ -737,7 +1012,9 @@
             <select id="exampleSelect" onchange="loadExample()" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; outline: none;">
             </select>
             <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">RU</button>
-            <button class="btn btn-ascii" onclick="openAsciiEditor()">📝 ASCII</button>
+            <button class="btn btn-ascii" id="btnAscii" onclick="openAsciiEditor()">📝 ASCII</button>
+            <button class="btn btn-share" id="btnGen" onclick="openBfGenerator()" style="background: #f9e2af; color: #11111b;">✨ Generate</button>
+            <button class="btn btn-share" id="btnShare" onclick="generateShareLink()">🔗 Share</button>
         </div>
     </header>
 
@@ -748,7 +1025,7 @@
     <div class="workspace">
         <div class="code-container">
             <div class="code-wrapper">
-                <textarea id="code" placeholder="Enter Brainfuck code here..." onscroll="syncHighlightScroll()" oninput="updateCodeHighlight()"></textarea>
+                <textarea id="code" placeholder="Enter Brainfuck code here..."></textarea>
                 <div class="code-highlight" id="codeHighlight"></div>
             </div>
         </div>
@@ -764,19 +1041,19 @@
         <button class="btn btn-compile" id="btnCompile" onclick="compileToJS()">🔧 Compile</button>
         <button class="btn btn-worker" id="btnWorker" onclick="runInWorker()">🚀 Worker</button>
         <button class="btn" id="btnClear" onclick="clearAll()" style="background: #45475a; color: var(--text-color);">Clear</button>
-        
+
         <div class="speed-control">
             <span id="labelSpeed">Speed:</span>
             <input type="range" id="speed" min="0" max="100" value="50" oninput="updateSpeed()">
             <span class="speed-label" id="speedVal">50</span>
         </div>
-        
+
         <div class="speed-control" style="gap: 5px;">
             <span id="labelTapeSize">Cells:</span>
             <input type="number" id="tapeSizeInput" value="1000" min="1" max="30000" style="width: 60px; background: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; outline: none; font-weight: bold; text-align: center;">
             <button class="btn" id="btnResizeTape" onclick="resizeTape()" style="padding: 4px 10px; font-size: 13px; background: var(--accent-color); color: #11111b; border-radius: 4px;">OK</button>
         </div>
-        
+
         <div class="range-control">
             <label id="labelRange">Range:</label>
             <input type="number" id="minValueInput" value="0">
@@ -795,7 +1072,7 @@
         </div>
 
         <span class="execution-status" id="execStatus">⏳ Running...</span>
-        
+
         <div class="current-command-info" id="commandInfo">
             <span class="cmd-index" id="cmdIndex">—</span>
             <span class="cmd-char" id="cmdChar">␣</span>
@@ -803,15 +1080,15 @@
             <span style="color: #6c7086; font-size: 12px; margin-left: 10px;" id="cellInfo">Range: 0..255</span>
         </div>
     </div>
-    
+
     <div class="stats">
-        <span>Commands: <span class="num" id="totalCommands">0</span></span>
-        <span>Speed: <span class="num" id="cmdPerTick">1</span> cmd/tick</span>
+        <span id="statCommands">Commands: <span class="num" id="totalCommands">0</span></span>
+        <span id="statSpeed">Speed: <span class="num" id="cmdPerTick">1</span> cmd/tick</span>
         <span class="optimization-status" id="optStatus">🔍 Step-by-step</span>
         <span id="asciiTableBadge" class="badge badge-std">ASCII: Standard</span>
         <span id="execTimeBadge" class="badge badge-std">⏱️ --</span>
     </div>
-    
+
     <div class="io-panel">
         <div class="io-field">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -823,6 +1100,16 @@
         <div class="io-field">
             <label id="labelInput">Input (passed to ','):</label>
             <textarea id="inputBuffer" placeholder="Characters for ',' command"></textarea>
+        </div>
+    </div>
+
+    <div class="output-history-panel">
+        <div class="output-history-header">
+            <h3 id="outputHistoryTitle">📜 Output History</h3>
+            <button class="btn" id="btnClearHistory" onclick="clearOutputHistory()" style="padding: 4px 10px; font-size: 12px; background: var(--border-color); color: var(--text-color);">Clear</button>
+        </div>
+        <div class="output-history-list" id="outputHistoryList">
+            <div class="output-history-empty" id="outputHistoryEmpty">No output yet. Run the program to see history.</div>
         </div>
     </div>
 
@@ -841,12 +1128,12 @@
 
 <div class="ascii-editor-overlay" id="asciiEditorOverlay">
     <div class="ascii-editor">
-        <h2>✏️ Custom ASCII Table</h2>
-        <p class="editor-hint">
+        <h2 id="asciiEditorTitle">✏️ Custom ASCII Table</h2>
+        <p class="editor-hint" id="asciiEditorHint">
             Format: <code>char = code1, code2, code3</code> (one per line)<br>
-            Use control names: <code>NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BS, TAB, LF, VT, FF, CR, SO, SI, DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB, CAN, EM, SUB, ESC, FS, GS, RS, US, DEL</code>
+            Use control names: <code>NUL, SOH, STX, ...</code>
         </p>
-        
+
         <div class="editor-presets">
             <span style="color:#6c7086;font-size:13px;">Presets:</span>
             <button class="preset-btn" onclick="loadPreset('russian')">🇷🇺 Russian</button>
@@ -857,29 +1144,69 @@
             <button class="preset-btn control-preset" onclick="loadPreset('controls')">🎮 Controls</button>
             <button class="preset-btn control-preset" onclick="loadPreset('all_controls')">🎯 All Controls</button>
         </div>
-        
+
         <textarea class="editor-input" id="editorInput" placeholder="A = 65, 66, 67&#10;B = 68, 69&#10;А = 1040&#10;NUL = 0&#10;SOH = 1"></textarea>
-        
+
         <div class="editor-actions">
-            <button class="btn btn-save-editor" onclick="saveAsciiTable()">✅ Apply</button>
-            <button class="btn btn-reset-editor" onclick="resetAsciiTable()">↺ Reset</button>
-            <button class="btn btn-close-editor" onclick="closeAsciiEditor()">✖ Close</button>
+            <button class="btn btn-save-editor" id="btnApplyAscii" onclick="saveAsciiTable()">✅ Apply</button>
+            <button class="btn btn-reset-editor" id="btnResetAscii" onclick="resetAsciiTable()">↺ Reset</button>
+            <button class="btn btn-close-editor" id="btnCloseAscii" onclick="closeAsciiEditor()">✖ Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="bf-gen-overlay" id="bfGenOverlay">
+    <div class="bf-gen">
+        <h2 id="bfGenTitle">✨ Brainfuck Generator</h2>
+        <p class="gen-hint" id="bfGenHint">
+            Введи текст — получишь два варианта BF-кода: простой (<code>+</code>, <code>-</code>, <code>.</code>) и оптимизированный (с циклами <code>[->+++&lt;]</code>, использует 1–2 ячейки).
+        </p>
+
+        <textarea class="gen-input" id="genInput" placeholder="Hello, World!" oninput="generateBfCode()"></textarea>
+        <div class="gen-error" id="genError"></div>
+
+        <div class="gen-result-block">
+            <div class="gen-result-header">
+                <span class="gen-result-title"><span id="genVariant1Title">Вариант 1: простой</span> <span class="gen-badge gen-badge-slow" id="genBadge1">—</span></span>
+                <span class="gen-result-meta" id="genMeta1">—</span>
+            </div>
+            <div class="gen-result-code" id="genCode1">—</div>
+            <div class="gen-result-actions">
+                <button class="btn btn-save-editor" id="genApply1" onclick="applyGenerated(1)" style="padding: 6px 12px; font-size: 13px;">↪ Применить</button>
+                <button class="btn" id="genCopy1" onclick="copyGenerated(1)" style="padding: 6px 12px; font-size: 13px; background: var(--border-color); color: var(--text-color);">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div class="gen-result-block">
+            <div class="gen-result-header">
+                <span class="gen-result-title"><span id="genVariant2Title">Вариант 2: оптимизированный</span> <span class="gen-badge gen-badge-fast" id="genBadge2">—</span></span>
+                <span class="gen-result-meta" id="genMeta2">—</span>
+            </div>
+            <div class="gen-result-code" id="genCode2">—</div>
+            <div class="gen-result-actions">
+                <button class="btn btn-save-editor" id="genApply2" onclick="applyGenerated(2)" style="padding: 6px 12px; font-size: 13px;">↪ Применить</button>
+                <button class="btn" id="genCopy2" onclick="copyGenerated(2)" style="padding: 6px 12px; font-size: 13px; background: var(--border-color); color: var(--text-color);">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div class="gen-actions">
+            <button class="btn btn-close-editor" id="genClose" onclick="closeBfGenerator()" style="padding: 8px 14px;">✖ Закрыть</button>
         </div>
     </div>
 </div>
 
 <script>
 // =====================================================================
-// КОНСТАНТЫ И ЗАЩИТА ОТ БЕСКОНЕЧНЫХ ЦИКЛОВ
+// КОНСТАНТЫ
 // =====================================================================
 
-const MAX_ITERATIONS = 50000000; // 50 млн команд за один запуск
-const CHUNK_SIZE = 100000;        // сколько команд выполнять за один тик
-const MAX_HISTORY = 10000;        // ограничение истории для - Step
-const MAX_RANGE_SIZE = 1000000;   // ограничение диапазона значений
+const MAX_ITERATIONS = 50000000;
+const CHUNK_SIZE = 100000;
+const MAX_HISTORY = 10000;
+const MAX_RANGE_SIZE = 1000000;
 
 // =====================================================================
-// УПРАВЛЯЮЩИЕ СИМВОЛЫ И ИХ ПОВЕДЕНИЕ
+// УПРАВЛЯЮЩИЕ СИМВОЛЫ
 // =====================================================================
 
 function getControlBehavior(name) {
@@ -896,7 +1223,7 @@ function getControlBehavior(name) {
 }
 
 // =====================================================================
-// ПОЛЬЗОВАТЕЛЬСКАЯ ASCII ТАБЛИЦА
+// ASCII ТАБЛИЦА
 // =====================================================================
 
 let customAsciiMap = null;
@@ -921,22 +1248,16 @@ const CONTROL_CODES = new Set(Object.values(CONTROL_NAMES));
 
 function getStandardAsciiMap() {
     const map = {};
-    for (let i = 0; i < 256; i++) {
-        map[String.fromCharCode(i)] = [i];
-    }
+    for (let i = 0; i < 256; i++) map[String.fromCharCode(i)] = [i];
     for (const [name, code] of Object.entries(CONTROL_NAMES)) {
-        if (code < 256) {
-            map[name] = [code];
-        }
+        if (code < 256) map[name] = [code];
     }
     return map;
 }
 
 function getStandardAsciiReverse() {
     const rev = {};
-    for (let i = 0; i < 256; i++) {
-        rev[i] = String.fromCharCode(i);
-    }
+    for (let i = 0; i < 256; i++) rev[i] = String.fromCharCode(i);
     return rev;
 }
 
@@ -949,13 +1270,9 @@ function getCurrentAsciiReverse() {
 }
 
 function charToCode(char) {
-    if (CONTROL_NAMES[char] !== undefined) {
-        return CONTROL_NAMES[char];
-    }
+    if (CONTROL_NAMES[char] !== undefined) return CONTROL_NAMES[char];
     const map = getCurrentAsciiMap();
-    if (map[char] && map[char].length > 0) {
-        return map[char][0];
-    }
+    if (map[char] && map[char].length > 0) return map[char][0];
     const cp = char.codePointAt(0);
     return cp !== undefined ? cp : 0;
 }
@@ -964,24 +1281,18 @@ function codeToCharForOutput(code) {
     if (customAsciiReverse !== null && customAsciiReverse[code] !== undefined) {
         const charName = customAsciiReverse[code];
         const behavior = getControlBehavior(charName);
-        if (behavior !== null) {
-            return behavior;
-        }
+        if (behavior !== null) return behavior;
         return charName;
     }
     if (CONTROL_REVERSE[code] !== undefined) {
         const behavior = getControlBehavior(CONTROL_REVERSE[code]);
-        if (behavior !== null) {
-            return behavior;
-        }
+        if (behavior !== null) return behavior;
         return '';
     }
     if (code >= 0 && code <= 0x10FFFF) {
         try {
             const ch = String.fromCodePoint(code);
-            if (ch && !CONTROL_CODES.has(code) && code >= 32) {
-                return ch;
-            }
+            if (ch && !CONTROL_CODES.has(code) && code >= 32) return ch;
         } catch (e) {}
     }
     return null;
@@ -991,15 +1302,11 @@ function codeToDisplayChar(code) {
     if (customAsciiReverse !== null && customAsciiReverse[code] !== undefined) {
         return customAsciiReverse[code];
     }
-    if (CONTROL_REVERSE[code] !== undefined) {
-        return CONTROL_REVERSE[code];
-    }
+    if (CONTROL_REVERSE[code] !== undefined) return CONTROL_REVERSE[code];
     if (code >= 0 && code <= 0x10FFFF) {
         try {
             const ch = String.fromCodePoint(code);
-            if (ch && code >= 32 && !CONTROL_CODES.has(code)) {
-                return ch;
-            }
+            if (ch && code >= 32 && !CONTROL_CODES.has(code)) return ch;
         } catch (e) {}
     }
     return null;
@@ -1009,9 +1316,7 @@ function buildReverseMap(map) {
     const rev = {};
     for (const [char, codes] of Object.entries(map)) {
         for (const code of codes) {
-            if (rev[code] === undefined) {
-                rev[code] = char;
-            }
+            if (rev[code] === undefined) rev[code] = char;
         }
     }
     return rev;
@@ -1021,65 +1326,48 @@ function parseAsciiTable(text) {
     const map = {};
     const lines = text.split('\n');
     let hasError = false;
-    
     for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith('#')) continue;
-        
         let sep = trimmed.includes('=') ? '=' : ':';
         let parts = trimmed.split(sep);
         if (parts.length !== 2) continue;
-        
         let charPart = parts[0].trim();
         let codePart = parts[1].trim();
-        
         let char = null;
-        if (CONTROL_NAMES[charPart] !== undefined) {
-            char = charPart;
-        } else if ((charPart.startsWith('"') && charPart.endsWith('"')) || 
-                   (charPart.startsWith("'") && charPart.endsWith("'"))) {
+        if (CONTROL_NAMES[charPart] !== undefined) char = charPart;
+        else if ((charPart.startsWith('"') && charPart.endsWith('"')) ||
+                 (charPart.startsWith("'") && charPart.endsWith("'"))) {
             char = charPart.slice(1, -1);
-        } else if (charPart.length === 1) {
-            char = charPart;
-        } else {
+        } else if (charPart.length === 1) char = charPart;
+        else {
             const upper = charPart.toUpperCase();
-            if (CONTROL_NAMES[upper] !== undefined) {
-                char = upper;
-            } else {
-                char = charPart[0];
-            }
+            if (CONTROL_NAMES[upper] !== undefined) char = upper;
+            else char = charPart[0];
         }
         if (!char) continue;
-        
         const codeStrings = codePart.split(',').map(s => s.trim());
         const codes = [];
         for (const cs of codeStrings) {
             let num = parseInt(cs);
-            if (!isNaN(num) && num >= 0 && num <= 0x10FFFF) {
-                codes.push(num);
-            } else {
-                hasError = true;
-            }
+            if (!isNaN(num) && num >= 0 && num <= 0x10FFFF) codes.push(num);
+            else hasError = true;
         }
-        if (codes.length > 0) {
-            map[char] = codes;
-        }
+        if (codes.length > 0) map[char] = codes;
     }
-    
     return { map, hasError };
 }
 
 function openAsciiEditor() {
     const overlay = document.getElementById('asciiEditorOverlay');
     const input = document.getElementById('editorInput');
-    
     if (customAsciiRawText !== null) {
         input.value = customAsciiRawText;
     } else if (customAsciiMap !== null) {
         let text = '';
         for (const [char, codes] of Object.entries(customAsciiMap)) {
             let displayChar = char;
-            if (char.includes(' ') || char.includes('=') || char.includes(':') || 
+            if (char.includes(' ') || char.includes('=') || char.includes(':') ||
                 char.includes('#') || char.length > 1) {
                 displayChar = '"' + char + '"';
             }
@@ -1089,7 +1377,6 @@ function openAsciiEditor() {
     } else {
         input.value = '# Format: char = code1, code2, code3\n# Example:\nA = 65, 66, 67\nB = 68, 69\n"Hello, World!" = 0\nNUL = 0\nSOH = 1\n';
     }
-    
     overlay.classList.add('open');
 }
 
@@ -1101,20 +1388,16 @@ function saveAsciiTable() {
     const input = document.getElementById('editorInput');
     const text = input.value;
     const result = parseAsciiTable(text);
-    
     if (Object.keys(result.map).length === 0) {
         alert('No valid mappings found. Use format: "char = code1, code2, code3"');
         return;
     }
-    
     if (result.hasError) {
         if (!confirm('Some codes were invalid. Continue with valid ones?')) return;
     }
-    
     customAsciiMap = result.map;
     customAsciiReverse = buildReverseMap(result.map);
     customAsciiRawText = text;
-    
     updateAsciiBadge();
     updateAsciiTableDisplay();
     updateUI();
@@ -1137,10 +1420,12 @@ function updateAsciiBadge() {
     const badge = document.getElementById('asciiTableBadge');
     if (customAsciiMap !== null) {
         const count = Object.keys(customAsciiMap).reduce((sum, k) => sum + customAsciiMap[k].length, 0);
-        badge.textContent = 'ASCII: Custom (' + count + ' codes)';
+        badge.textContent = currentLang === 'ru'
+            ? 'ASCII: Своя (' + count + ' кодов)'
+            : 'ASCII: Custom (' + count + ' codes)';
         badge.className = 'badge badge-custom';
     } else {
-        badge.textContent = 'ASCII: Standard';
+        badge.textContent = currentLang === 'ru' ? 'ASCII: Стандартная' : 'ASCII: Standard';
         badge.className = 'badge badge-std';
     }
 }
@@ -1253,10 +1538,8 @@ function loadPreset(name) {
             'þ': [254], 'ÿ': [255]
         }
     };
-    
     const preset = presets[name];
     if (!preset) return;
-    
     let text = '';
     for (const [char, codes] of Object.entries(preset)) {
         text += char + ' = ' + codes.join(', ') + '\n';
@@ -1267,12 +1550,8 @@ function loadPreset(name) {
 function updateAsciiTableDisplay() {
     const container = document.getElementById('asciiContainer');
     if (!container) return;
-    
-    const openGroups = Array.from(container.querySelectorAll('.ascii-group.open'))
-        .map(g => g.dataset.id);
-    
+    const openGroups = Array.from(container.querySelectorAll('.ascii-group.open')).map(g => g.dataset.id);
     container.innerHTML = '';
-    
     const groups = [
         { id: 'control', min: 0, max: 31, nameRu: '0-31: Управляющие символы', nameEn: '0-31: Control Characters' },
         { id: 'space', min: 32, max: 32, nameRu: '32: Пробел', nameEn: '32: Space' },
@@ -1288,33 +1567,26 @@ function updateAsciiTableDisplay() {
         { id: 'latin1_2', min: 160, max: 191, nameRu: '160-191: Latin-1 символы', nameEn: '160-191: Latin-1 Symbols' },
         { id: 'latin1_3', min: 192, max: 255, nameRu: '192-255: Latin-1 буквы', nameEn: '192-255: Latin-1 Letters' }
     ];
-    
     const isCustom = customAsciiMap !== null;
-    
     groups.forEach(function(g) {
         const groupEl = document.createElement('div');
         groupEl.className = 'ascii-group';
         groupEl.dataset.id = g.id;
         if (openGroups.includes(g.id)) groupEl.classList.add('open');
-        
         const header = document.createElement('div');
         header.className = 'ascii-group-header';
         header.dataset.nameRu = g.nameRu;
         header.dataset.nameEn = g.nameEn;
         header.innerHTML = '<span class="group-title">' + (currentLang === 'ru' ? g.nameRu : g.nameEn) + '</span><span>▾</span>';
         header.onclick = function() { groupEl.classList.toggle('open'); };
-        
         const content = document.createElement('div');
         content.className = 'ascii-group-content';
-        
         for (let i = g.min; i <= g.max; i++) {
             let charText;
             let isCustomChar = false;
             let isControl = false;
-            
             if (isCustom && customAsciiReverse && customAsciiReverse[i] !== undefined) {
-                const ch = customAsciiReverse[i];
-                charText = ch;
+                charText = customAsciiReverse[i];
                 isCustomChar = true;
             } else if (CONTROL_REVERSE[i] !== undefined) {
                 charText = CONTROL_REVERSE[i];
@@ -1332,7 +1604,6 @@ function updateAsciiTableDisplay() {
             } else {
                 charText = '?';
             }
-            
             const item = document.createElement('div');
             item.className = 'ascii-item';
             if (isCustomChar) item.classList.add('custom');
@@ -1342,28 +1613,14 @@ function updateAsciiTableDisplay() {
             if (isControl) item.title = 'Control character';
             content.appendChild(item);
         }
-        
         groupEl.appendChild(header);
         groupEl.appendChild(content);
         container.appendChild(groupEl);
     });
 }
 
-function updateAsciiGroupTitles() {
-    const container = document.getElementById('asciiContainer');
-    if (!container) return;
-    container.querySelectorAll('.ascii-group').forEach(function(groupEl) {
-        const header = groupEl.querySelector('.ascii-group-header');
-        const titleEl = header.querySelector('.group-title');
-        if (!titleEl) return;
-        const nameRu = header.dataset.nameRu;
-        const nameEn = header.dataset.nameEn;
-        titleEl.textContent = currentLang === 'ru' ? nameRu : nameEn;
-    });
-}
-
 // =====================================================================
-// ОСНОВНАЯ ЛОГИКА ИНТЕРПРЕТАТОРА
+// ОСНОВНАЯ ЛОГИКА
 // =====================================================================
 
 let currentLang = 'en';
@@ -1371,6 +1628,12 @@ let totalRawCommands = 0;
 
 let eoiMode = 'zero';
 let eoiCharCode = 0;
+
+let cellNames = {};
+let nameEditorEl = null;
+
+let outputHistory = [];
+let outputHistoryCounter = 0;
 
 const translations = {
     en: {
@@ -1381,38 +1644,25 @@ const translations = {
         labelOutput: "Output:",
         labelSpeed: "Speed:",
         placeholder: "Enter Brainfuck code here...",
-        btnRun: "Run",
-        btnWait: "Wait",
-        btnContinue: "Continue",
-        btnStepFwd: "+ Step",
-        btnStepBwd: "- Step",
-        btnStop: "Stop",
-        btnClear: "Clear",
-        btnCopy: "Copy",
-        btnCopied: "Copied!",
+        btnRun: "Run", btnWait: "Wait", btnContinue: "Continue",
+        btnStepFwd: "+ Step", btnStepBwd: "- Step",
+        btnStop: "Stop", btnClear: "Clear",
+        btnCopy: "Copy", btnCopied: "Copied!",
         examplePlaceholder: "— Choose Example —",
         execStatus: "⏳ Running...",
         cmdWaiting: "waiting",
         labelTapeSize: "Cells:",
         labelRange: "Range:",
         labelEOI: "End of Input:",
-        eoiZero: "Set code:",
-        eoiUnchanged: "Leave unchanged",
+        eoiZero: "Set code:", eoiUnchanged: "Leave unchanged",
         examples: {
-            hello: "Hello World!",
-            add: "Adding two digits (1+2)",
-            cat: "Cat program (Echo input)",
-            sixseven: "SIXSEVEN",
-            loopdoub: "Looping Doubler",
-            thisurl: "URL of this site",
-            logicn: "Logical AND",
-            logicno: "Logical NOT",
-            codeofsymb: "ASCII code of a char",
-            len: "Length of input",
-            bf2: "Brainfuck with 2 commands",
-            bf3: "Brainfuck with 3 commands",
-            bf4: "Brainfuck with 4 commands",
-            bf6: "Brainfuck with 6 commands"
+            hello: "Hello World!", add: "Adding two digits (1+2)",
+            cat: "Cat program (Echo input)", sixseven: "SIXSEVEN",
+            loopdoub: "Looping Doubler", thisurl: "URL of this site",
+            logicn: "Logical AND", logicno: "Logical NOT",
+            codeofsymb: "ASCII code of a char", len: "Length of input",
+            bf2: "Brainfuck with 2 commands", bf3: "Brainfuck with 3 commands",
+            bf4: "Brainfuck with 4 commands", bf6: "Brainfuck with 6 commands"
         },
         hints: [
             { cmd: '>', desc: 'Move pointer right' },
@@ -1426,7 +1676,31 @@ const translations = {
         ],
         optBounded: "Bounded (Standard)",
         optWrap: "Wrap-around (Loop)",
-        asciiTitle: "ASCII Table (0-255)"
+        asciiTitle: "ASCII Table (0-255)",
+        outputHistoryTitle: "📜 Output History",
+        outputHistoryEmpty: "No output yet. Run the program to see history.",
+        statCommands: "Commands:",
+        statSpeed: "Speed:",
+        btnGenerate: "✨ Generate",
+        btnAscii: "📝 ASCII",
+        bfGenTitle: "✨ Brainfuck Generator",
+        bfGenHint: 'Enter text — you\'ll get two versions of BF code: simple (<code>+</code>, <code>-</code>, <code>.</code>) and optimized (with loops <code>[->+++&lt;]</code>, uses 1–2 cells).',
+        genVariant1: "Variant 1: simple",
+        genVariant2: "Variant 2: optimized",
+        genApply: "↪ Apply",
+        genCopy: "📋 Copy",
+        genClose: "✖ Close",
+        genBadgeSlow: "slower",
+        genBadgeFast: "faster",
+        genEqual: "equal size",
+        genChars: "chars",
+        genWarning: "⚠️ Characters with code > 255 are not supported (standard 8-bit tape).",
+        genCopied: "Copied!",
+        asciiEditorTitle: "✏️ Custom ASCII Table",
+        asciiEditorHint: 'Format: <code>char = code1, code2, code3</code> (one per line)<br>Use control names: <code>NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BS, TAB, LF, VT, FF, CR, SO, SI, DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB, CAN, EM, SUB, ESC, FS, GS, RS, US, DEL</code>',
+        btnApplyAscii: "✅ Apply",
+        btnResetAscii: "↺ Reset",
+        btnCloseAscii: "✖ Close"
     },
     ru: {
         title: "Визуализатор Brainfuck ⚡",
@@ -1436,23 +1710,17 @@ const translations = {
         labelOutput: "Вывод:",
         labelSpeed: "Скорость:",
         placeholder: "Введите Brainfuck код сюда...",
-        btnRun: "Запуск",
-        btnWait: "Пауза",
-        btnContinue: "Продолжить",
-        btnStepFwd: "Шаг +",
-        btnStepBwd: "Шаг -",
-        btnStop: "Стоп",
-        btnClear: "Стереть",
-        btnCopy: "Копировать",
-        btnCopied: "Скопировано!",
+        btnRun: "Запуск", btnWait: "Пауза", btnContinue: "Продолжить",
+        btnStepFwd: "Шаг +", btnStepBwd: "Шаг -",
+        btnStop: "Стоп", btnClear: "Стереть",
+        btnCopy: "Копировать", btnCopied: "Скопировано!",
         examplePlaceholder: "— Выберите пример —",
         execStatus: "⏳ Выполнение...",
         cmdWaiting: "ожидание",
         labelTapeSize: "Ячеек:",
         labelRange: "Диапазон:",
         labelEOI: "Конец ввода:",
-        eoiZero: "Код:",
-        eoiUnchanged: "Без изменений",
+        eoiZero: "Код:", eoiUnchanged: "Без изменений",
         examples: {
             hello: "Привет, мир! (Hello World)",
             add: "Сложение двух цифр (1+2)",
@@ -1460,14 +1728,10 @@ const translations = {
             sixseven: "SIXSEVEN",
             loopdoub: "Циклический удвоитель",
             thisurl: "URL этого сайта",
-            logicn: "Логическое И",
-            logicno: "Логическое НЕ",
-            codeofsymb: "ASCII-код символа",
-            len: "Длина инпута",
-            bf2: "Brainfuck с 2 командами",
-            bf3: "Brainfuck с 3 командами",
-            bf4: "Brainfuck с 4 командами",
-            bf6: "Brainfuck с 6 командами"
+            logicn: "Логическое И", logicno: "Логическое НЕ",
+            codeofsymb: "ASCII-код символа", len: "Длина инпута",
+            bf2: "Brainfuck с 2 командами", bf3: "Brainfuck с 3 командами",
+            bf4: "Brainfuck с 4 командами", bf6: "Brainfuck с 6 командами"
         },
         hints: [
             { cmd: '>', desc: 'Сдвинуть указатель вправо' },
@@ -1481,7 +1745,31 @@ const translations = {
         ],
         optBounded: "Ограниченная (Фиксация)",
         optWrap: "Закольцованная (Цикл)",
-        asciiTitle: "Таблица ASCII (0-255)"
+        asciiTitle: "Таблица ASCII (0-255)",
+        outputHistoryTitle: "📜 История вывода",
+        outputHistoryEmpty: "Пока нет вывода. Запустите программу, чтобы увидеть историю.",
+        statCommands: "Команд:",
+        statSpeed: "Скорость:",
+        btnGenerate: "✨ Генератор",
+        btnAscii: "📝 ASCII",
+        bfGenTitle: "✨ Генератор Brainfuck",
+        bfGenHint: 'Введи текст — получишь два варианта BF-кода: простой (<code>+</code>, <code>-</code>, <code>.</code>) и оптимизированный (с циклами <code>[->+++&lt;]</code>, использует 1–2 ячейки).',
+        genVariant1: "Вариант 1: простой",
+        genVariant2: "Вариант 2: оптимизированный",
+        genApply: "↪ Применить",
+        genCopy: "📋 Копировать",
+        genClose: "✖ Закрыть",
+        genBadgeSlow: "медленнее",
+        genBadgeFast: "быстрее",
+        genEqual: "равный размер",
+        genChars: "символов",
+        genWarning: "⚠️ Символы с кодом > 255 не поддерживаются (стандартная 8-битная лента).",
+        genCopied: "Скопировано!",
+        asciiEditorTitle: "✏️ Своя таблица ASCII",
+        asciiEditorHint: 'Формат: <code>символ = код1, код2, код3</code> (по одному на строку)<br>Имена управляющих: <code>NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BS, TAB, LF, VT, FF, CR, SO, SI, DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB, CAN, EM, SUB, ESC, FS, GS, RS, US, DEL</code>',
+        btnApplyAscii: "✅ Применить",
+        btnResetAscii: "↺ Сбросить",
+        btnCloseAscii: "✖ Закрыть"
     }
 };
 
@@ -1511,22 +1799,13 @@ const bfkExamples = {
         code: "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
         input: "Hello"
     },
-    add: {
-        code: ",>,[-<+>]++++++++[-<------>]<.",
-        input: "12"
-    },
-    cat: {
-        code: ",[.,]",
-        input: "Brainfuck"
-    },
+    add: { code: ",>,[-<+>]++++++++[-<------>]<.", input: "12" },
+    cat: { code: ",[.,]", input: "Brainfuck" },
     sixseven: {
         code: "++++++++++[->++++++++<]>[->+>+>+>+>+>+<<<<<<]>+++.>-------.>++++++++.<<.>>>-----------.>++++++.<.>>--.",
         input: "SIXSEVEN"
     },
-    loopdoub: {
-        code: ",[..,]",
-        input: "Puk Puk"
-    },
+    loopdoub: { code: ",[..,]", input: "Puk Puk" },
     thisurl: {
         code: "++++++++++[->++++++++++<]>++++.<+++[->++++<]>..----.+++.<+++[->-------------------<]>.-----------..<+++++++[->++++++++++<]>+.-------------.++.+++++++++.-----.+++.<+++[->-----<]>.+++++.-------.++++++++++++.+++.-------.++++++.-.<++++++++[->--------<]>.>++++++++++[->++++++++++<]>+++.++.+++++++++++.------------.+++++++++++++.<+++++[->----<]>+.<<.>>+++++++.++++++.<<+.>+++++[->---------<]>.<++++++[->++++++++<]>.<+++++[->---<]>--.++++++++.+++++.--------.<+++++[->+++<]>.<++++++[->---<]>.++++++++.<+++++++++++++++++[->--<]>.<++++++[->++++++<]>+.++++++.>++++++++++[->++++++++++<]>+.>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++[->++<]>.>++++++++[->++++++++++++++<]>.<<.<<.<<.>>.>>\nviktor_champion@mail.ru",
         input: "https://viktorchampion.github.io/BrainfuckInterpreter"
@@ -1583,6 +1862,8 @@ function switchLanguage(lang) {
     document.getElementById('btnStepBwd').innerText = t.btnStepBwd;
     document.getElementById('btnStop').innerText = t.btnStop;
     document.getElementById('btnClear').innerText = t.btnClear;
+    document.getElementById('btnGen').innerText = t.btnGenerate;
+    document.getElementById('btnAscii').innerText = t.btnAscii;
     document.getElementById('optBounded').innerText = t.optBounded;
     document.getElementById('optWrap').innerText = t.optWrap;
     document.getElementById('execStatus').innerText = t.execStatus;
@@ -1592,6 +1873,25 @@ function switchLanguage(lang) {
     if (document.getElementById('eoiOptZero')) document.getElementById('eoiOptZero').innerText = t.eoiZero;
     if (document.getElementById('eoiOptUnchanged')) document.getElementById('eoiOptUnchanged').innerText = t.eoiUnchanged;
     if (document.getElementById('asciiTitle')) document.getElementById('asciiTitle').innerText = t.asciiTitle;
+    if (document.getElementById('outputHistoryTitle')) document.getElementById('outputHistoryTitle').innerText = t.outputHistoryTitle;
+    // Статистика
+    updateStatsLabels();
+    // Генератор
+    document.getElementById('bfGenTitle').innerText = t.bfGenTitle;
+    document.getElementById('bfGenHint').innerHTML = t.bfGenHint;
+    document.getElementById('genVariant1Title').innerText = t.genVariant1;
+    document.getElementById('genVariant2Title').innerText = t.genVariant2;
+    document.getElementById('genApply1').innerText = t.genApply;
+    document.getElementById('genApply2').innerText = t.genApply;
+    document.getElementById('genCopy1').innerText = t.genCopy;
+    document.getElementById('genCopy2').innerText = t.genCopy;
+    document.getElementById('genClose').innerText = t.genClose;
+    // ASCII editor
+    document.getElementById('asciiEditorTitle').innerText = t.asciiEditorTitle;
+    document.getElementById('asciiEditorHint').innerHTML = t.asciiEditorHint;
+    document.getElementById('btnApplyAscii').innerText = t.btnApplyAscii;
+    document.getElementById('btnResetAscii').innerText = t.btnResetAscii;
+    document.getElementById('btnCloseAscii').innerText = t.btnCloseAscii;
     updateExamplesDropdown();
     const grid = document.getElementById('hintGrid');
     grid.innerHTML = '';
@@ -1600,49 +1900,80 @@ function switchLanguage(lang) {
     });
     updateCommandInfo();
     updateAsciiBadge();
-    // Перерисовываем таблицу ASCII с новыми заголовками групп
     updateAsciiTableDisplay();
+    renderOutputHistory();
+    // Если открыт генератор — обновить бейджи
+    if (document.getElementById('bfGenOverlay').classList.contains('open')) {
+        generateBfCode();
+    }
+}
+
+function updateStatsLabels() {
+    const t = translations[currentLang];
+    if (document.getElementById('statCommands')) {
+        document.getElementById('statCommands').innerHTML = t.statCommands + ' <span class="num" id="totalCommands">' + totalRawCommands + '</span>';
+    }
+    if (document.getElementById('statSpeed')) {
+        const speed = parseInt(document.getElementById('speed').value);
+        const speedText = speed === 0 ? '⚡ MAX' : speed + ' cmd/s';
+        document.getElementById('statSpeed').innerHTML = t.statSpeed + ' <span class="num" id="cmdPerTick">' + speedText + '</span>';
+    }
 }
 
 function toggleLanguage() {
     switchLanguage(currentLang === 'en' ? 'ru' : 'en');
 }
 
+let hoveredBracketRawIndex = -1;
+let bracketMatchRawIndex = -1;
+let bracketUnmatched = false;
+
+function findMatchingBracketInRaw(rawIndex) {
+    const rawCode = document.getElementById('code').value;
+    const ch = rawCode[rawIndex];
+    if (ch !== '[' && ch !== ']') return -1;
+    const open = ch === '[' ? '[' : ']';
+    const close = ch === '[' ? ']' : '[';
+    const dir = ch === '[' ? 1 : -1;
+    let count = 1;
+    let i = rawIndex;
+    while (count > 0) {
+        i += dir;
+        if (i < 0 || i >= rawCode.length) return -1;
+        if (rawCode[i] === open) count++;
+        else if (rawCode[i] === close) count--;
+    }
+    return i;
+}
+
 function updateCodeHighlight() {
     const textarea = document.getElementById('code');
     const highlight = document.getElementById('codeHighlight');
     const code = textarea.value;
-    
-    // Экранируем весь текст один раз
-    const escapedAll = code
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/ /g, '&nbsp;');
-    
-    if (rawCodeIndex >= 0 && isRunning && codeIndex < cleanCode.length) {
-        // Подсвечиваем символ по индексу rawCodeIndex.
-        // Но escapedAll имеет другую длину из-за замен. Проще: разбить по символам.
-        let html = '';
-        for (let i = 0; i < code.length; i++) {
-            const char = code[i];
-            let esc;
-            if (char === ' ') esc = '&nbsp;';
-            else if (char === '&') esc = '&amp;';
-            else if (char === '<') esc = '&lt;';
-            else if (char === '>') esc = '&gt;';
-            else esc = char;
-            
-            if (i === rawCodeIndex) {
-                html += '<span class="highlight-char">' + esc + '</span>';
-            } else {
-                html += esc;
-            }
+
+    let html = '';
+    for (let i = 0; i < code.length; i++) {
+        const ch = code[i];
+        let esc;
+        if (ch === ' ') esc = '&nbsp;';
+        else if (ch === '&') esc = '&amp;';
+        else if (ch === '<') esc = '&lt;';
+        else if (ch === '>') esc = '&gt;';
+        else esc = ch;
+
+        let cls = '';
+        if (i === hoveredBracketRawIndex) {
+            cls = bracketUnmatched ? 'bracket-unmatched' : 'bracket-match';
+        } else if (i === bracketMatchRawIndex) {
+            cls = 'bracket-match';
+        } else if (i === rawCodeIndex && isRunning && codeIndex < cleanCode.length) {
+            cls = 'highlight-char';
         }
-        highlight.innerHTML = html;
-    } else {
-        highlight.innerHTML = escapedAll;
+
+        if (cls) html += '<span class="' + cls + '">' + esc + '</span>';
+        else html += esc;
     }
+    highlight.innerHTML = html;
 }
 
 function syncHighlightScroll() {
@@ -1658,9 +1989,7 @@ function updateCommandInfo() {
     const cmdDescEl = document.getElementById('cmdDesc');
     const cellInfoEl = document.getElementById('cellInfo');
     const t = translations[currentLang];
-    if (cellInfoEl) {
-        cellInfoEl.textContent = 'Range: ' + MIN_VALUE + '..' + MAX_VALUE;
-    }
+    if (cellInfoEl) cellInfoEl.textContent = (currentLang === 'ru' ? 'Диапазон: ' : 'Range: ') + MIN_VALUE + '..' + MAX_VALUE;
     if (isRunning && codeIndex < cleanCode.length) {
         const cmd = cleanCode[codeIndex];
         cmdIndexEl.textContent = '#' + (codeIndex + 1);
@@ -1675,15 +2004,13 @@ function updateCommandInfo() {
 }
 
 function updateStats() {
-    document.getElementById('totalCommands').textContent = totalRawCommands;
+    updateStatsLabels();
     const speed = parseInt(document.getElementById('speed').value);
     if (speed === 0) {
-        document.getElementById('cmdPerTick').textContent = '⚡ MAX';
-        document.getElementById('optStatus').textContent = '⚡ Instant (chunked)';
+        document.getElementById('optStatus').textContent = currentLang === 'ru' ? '⚡ Мгновенно' : '⚡ Instant (chunked)';
         document.getElementById('optStatus').style.color = '#f9e2af';
     } else {
-        document.getElementById('cmdPerTick').textContent = speed + ' cmd/s';
-        document.getElementById('optStatus').textContent = '🔍 Step-by-step';
+        document.getElementById('optStatus').textContent = currentLang === 'ru' ? '🔍 Пошагово' : '🔍 Step-by-step';
         document.getElementById('optStatus').style.color = '#89b4fa';
     }
 }
@@ -1707,7 +2034,8 @@ function moveArrowVisual(index) {
 }
 
 function escapeHTML(text) {
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    if (text === undefined || text === null) return '';
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function initTape() {
@@ -1718,6 +2046,11 @@ function initTape() {
         cell.className = 'cell';
         cell.id = 'cell-' + i;
         cell.innerHTML = '<div class="cell-top"><span class="cell-index">' + i + '</span><span class="cell-ascii" id="ascii-' + i + '">␣</span></div><span class="cell-value" id="val-' + i + '">0</span>';
+        cell.addEventListener('click', function(e) {
+            if (e.target.classList.contains('cell-index') || e.target.classList.contains('cell-ascii')) {
+                openNameEditor(i, cell);
+            }
+        });
         tapeEl.appendChild(cell);
     }
     const arrow = document.createElement('div');
@@ -1726,13 +2059,157 @@ function initTape() {
     arrow.innerHTML = '▲';
     tapeEl.appendChild(arrow);
     setTimeout(function() { moveArrowVisual(0); }, 50);
+    applyCellNames();
+}
+
+function applyCellNames() {
+    for (let i = 0; i < TAPE_SIZE; i++) {
+        const cell = document.getElementById('cell-' + i);
+        if (!cell) continue;
+        let nameEl = cell.querySelector('.cell-name');
+        if (cellNames[i]) {
+            if (!nameEl) {
+                nameEl = document.createElement('div');
+                nameEl.className = 'cell-name';
+                cell.appendChild(nameEl);
+            }
+            nameEl.textContent = cellNames[i];
+            cell.classList.add('has-name');
+        } else {
+            if (nameEl) nameEl.remove();
+            cell.classList.remove('has-name');
+        }
+    }
+}
+
+function openNameEditor(index, cell) {
+    closeNameEditor();
+    const editor = document.createElement('div');
+    editor.className = 'cell-name-editor';
+    const rect = cell.getBoundingClientRect();
+    editor.style.left = rect.left + 'px';
+    editor.style.top = (rect.bottom + 6) + 'px';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = cellNames[index] || '';
+    input.placeholder = 'Name...';
+    input.maxLength = 12;
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '✓';
+    saveBtn.style.background = '#a6e3a1';
+    saveBtn.style.color = '#11111b';
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = '✕';
+    clearBtn.style.background = '#f38ba8';
+    clearBtn.style.color = '#11111b';
+    const commit = function() {
+        const val = input.value.trim();
+        if (val) cellNames[index] = val;
+        else delete cellNames[index];
+        applyCellNames();
+        closeNameEditor();
+    };
+    saveBtn.onclick = commit;
+    clearBtn.onclick = function() {
+        delete cellNames[index];
+        applyCellNames();
+        closeNameEditor();
+    };
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') commit();
+        if (e.key === 'Escape') closeNameEditor();
+    });
+    editor.appendChild(input);
+    editor.appendChild(saveBtn);
+    editor.appendChild(clearBtn);
+    document.body.appendChild(editor);
+    nameEditorEl = editor;
+    input.focus();
+    input.select();
+}
+
+function closeNameEditor() {
+    if (nameEditorEl) {
+        nameEditorEl.remove();
+        nameEditorEl = null;
+    }
+}
+
+function renderOutputHistory() {
+    const list = document.getElementById('outputHistoryList');
+    if (!list) return;
+    const t = translations[currentLang];
+
+    if (outputHistory.length === 0) {
+        list.innerHTML = '<div class="output-history-empty" id="outputHistoryEmpty">' + t.outputHistoryEmpty + '</div>';
+        return;
+    }
+
+    let html = '<div class="output-history-row header">' +
+        '<span>#</span>' +
+        '<span>Cmd#</span>' +
+        '<span>Raw#</span>' +
+        '<span>Cell</span>' +
+        '<span>Value</span>' +
+        '<span>Char</span>' +
+        '</div>';
+
+    for (let i = outputHistory.length - 1; i >= 0; i--) {
+        const e = outputHistory[i];
+        let charCls = 'char-cell';
+        let displayChar = e.char;
+        let isCustom = false;
+
+        if (e.val !== undefined && customAsciiReverse !== null && customAsciiReverse[e.val] !== undefined) {
+            displayChar = customAsciiReverse[e.val];
+            isCustom = true;
+            charCls += ' custom-char';
+        } else if (e.val !== undefined && CONTROL_REVERSE[e.val] !== undefined) {
+            displayChar = CONTROL_REVERSE[e.val];
+            charCls += ' control-char';
+        } else if (e.val !== undefined && (e.val < 0 || e.val > 0x10FFFF ||
+                 (e.val >= 0 && e.val < 32) || e.val === 127)) {
+            if (e.val >= 0 && e.val < 32) {
+                displayChar = CONTROL_REVERSE[e.val] || ('^' + String.fromCharCode(64 + e.val));
+            } else if (e.val === 127) {
+                displayChar = 'DEL';
+            } else {
+                displayChar = '[' + e.val + ']';
+            }
+            charCls += ' control-char';
+        } else if (e.char && e.char.startsWith('[') && e.char.endsWith(']')) {
+            charCls += ' non-printable';
+        } else if (e.char === '\n') { displayChar = 'LF'; charCls += ' control-char'; }
+        else if (e.char === '\r') { displayChar = 'CR'; charCls += ' control-char'; }
+        else if (e.char === '\t') { displayChar = 'TAB'; charCls += ' control-char'; }
+        else if (e.char === '\b') { displayChar = 'BS'; charCls += ' control-char'; }
+        else if (e.char === '\f') { displayChar = 'FF'; charCls += ' control-char'; }
+        else if (e.char === '\v') { displayChar = 'VT'; charCls += ' control-char'; }
+        else if (e.char === '\x00') { displayChar = 'NUL'; charCls += ' control-char'; }
+        else if (e.char === ' ') { displayChar = 'SP'; charCls += ' control-char'; }
+
+        html += '<div class="output-history-row">' +
+            '<span class="num-cell">' + e.n + '</span>' +
+            '<span class="coord-cell">#' + e.cleanIndex + '</span>' +
+            '<span class="coord-cell">' + (typeof e.rawIndex === 'number' ? 'raw:' + e.rawIndex : '—') + '</span>' +
+            '<span class="ptr-cell">[' + e.ptr + ']</span>' +
+            '<span class="val-cell">' + e.val + '</span>' +
+            '<span class="' + charCls + '">' + escapeHTML(displayChar) + '</span>' +
+            '</div>';
+    }
+    list.innerHTML = html;
+}
+
+function clearOutputHistory() {
+    outputHistory = [];
+    outputHistoryCounter = 0;
+    renderOutputHistory();
 }
 
 function updateUI() {
     for (let i = 0; i < TAPE_SIZE; i++) {
         const cell = document.getElementById('cell-' + i);
         if (!cell) continue;
-        
         const val = memory[i];
         const valEl = document.getElementById('val-' + i);
         valEl.innerText = val;
@@ -1740,31 +2217,24 @@ function updateUI() {
         if (val < 0) valEl.classList.add('negative');
         else if (val > 0) valEl.classList.add('positive');
         else valEl.classList.add('zero');
-        
         const asciiEl = document.getElementById('ascii-' + i);
         if (asciiEl) {
             let displayChar;
             let isPrintable = false;
             let isControl = false;
             let isCustom = false;
-            
             const displayName = codeToDisplayChar(val);
             if (displayName !== null) {
                 displayChar = displayName;
-                if (customAsciiReverse !== null && customAsciiReverse[val] !== undefined) {
-                    isCustom = true;
-                }
+                if (customAsciiReverse !== null && customAsciiReverse[val] !== undefined) isCustom = true;
                 if (CONTROL_REVERSE[val] !== undefined || (val >= 0 && val <= 31) || val === 127) {
                     isControl = true;
                     isPrintable = false;
-                } else {
-                    isPrintable = true;
-                }
+                } else isPrintable = true;
             } else {
                 displayChar = String(val);
                 isPrintable = false;
             }
-            
             asciiEl.textContent = displayChar;
             asciiEl.className = 'cell-ascii';
             if (!isPrintable) asciiEl.classList.add('non-printable');
@@ -1772,7 +2242,6 @@ function updateUI() {
             if (isCustom) asciiEl.classList.add('custom-char');
             if (val < 0 || val > 255) asciiEl.classList.add('overflow');
         }
-        
         if (i === ptr) cell.classList.add('active');
         else cell.classList.remove('active');
     }
@@ -1782,17 +2251,19 @@ function updateUI() {
     document.getElementById('btnContinue').disabled = !isRunning || !isPaused;
     document.getElementById('btnStepFwd').disabled = isRunning && !isPaused;
     document.getElementById('btnStepBwd').disabled = history.length === 0;
-    document.getElementById('code').disabled = isRunning;
+    document.getElementById('code').disabled = isRunning && !isPaused;
     const statusEl = document.getElementById('execStatus');
     if (isRunning && !isPaused && parseInt(document.getElementById('speed').value) === 0) {
         statusEl.classList.add('active');
     } else {
         statusEl.classList.remove('active');
     }
+    applyCellNames();
     updateCommandInfo();
     updateCodeHighlight();
     updateStats();
     updateAsciiBadge();
+    renderOutputHistory();
 }
 
 function saveHistory() {
@@ -1802,11 +2273,11 @@ function saveHistory() {
         codeIndex: codeIndex,
         rawCodeIndex: rawCodeIndex,
         output: document.getElementById('output').value,
-        inputIndex: inputIndex
+        inputIndex: inputIndex,
+        outputHistoryLen: outputHistory.length,
+        outputHistoryCounter: outputHistoryCounter
     });
-    if (history.length > MAX_HISTORY) {
-        history.shift();
-    }
+    if (history.length > MAX_HISTORY) history.shift();
 }
 
 function prepareExecution() {
@@ -1824,7 +2295,6 @@ function prepareExecution() {
     updateStats();
 }
 
-// Поиск парной скобки. direction = +1 для '[' (ищем ']'), -1 для ']' (ищем '[').
 function findMatchingBracket(startIndex, direction) {
     let count = 1;
     let i = startIndex;
@@ -1841,7 +2311,6 @@ function findMatchingBracket(startIndex, direction) {
 
 function executeRawOp(cmd, updateUI_ = true) {
     const inputString = document.getElementById('inputBuffer').value;
-    
     switch (cmd) {
         case '>':
             if (ptr < TAPE_SIZE - 1) ptr++;
@@ -1861,54 +2330,66 @@ function executeRawOp(cmd, updateUI_ = true) {
             memory[ptr] = normalizeValue(memory[ptr] - 1);
             codeIndex++;
             break;
-        case '.':
+        case '.': {
             const outputEl = document.getElementById('output');
             const val = memory[ptr];
             const outputChar = codeToCharForOutput(val);
+            let written;
             if (outputChar !== null) {
                 outputEl.value += outputChar;
+                written = outputChar;
             } else {
                 outputEl.value += '[' + val + ']';
+                written = '[' + val + ']';
             }
+            outputHistoryCounter++;
+            outputHistory.push({
+                n: outputHistoryCounter,
+                cleanIndex: codeIndex + 1,
+                rawIndex: rawCodeIndex >= 0 ? rawCodeIndex + 1 : '?',
+                val: val,
+                ptr: ptr,
+                char: written,
+                displayChar: outputChar,
+                reason: 'output'
+            });
+            if (outputHistory.length > 5000) outputHistory.shift();
             codeIndex++;
             break;
-        case ',':
+        }
+        case ',': {
             if (inputIndex < inputString.length) {
                 const char = inputString[inputIndex];
                 memory[ptr] = normalizeInputValue(charToCode(char));
                 inputIndex++;
             } else {
                 if (eoiMode === 'unchanged') {
-                    // ничего не делаем
+                    // ничего
                 } else {
                     memory[ptr] = normalizeValue(eoiCharCode);
                 }
             }
             codeIndex++;
             break;
+        }
         case '[':
             if (memory[ptr] === 0) {
                 const target = findMatchingBracket(codeIndex, +1);
                 if (target === -1) { stopCode(); if (updateUI_) updateUI(); return false; }
                 codeIndex = target + 1;
-            } else {
-                codeIndex++;
-            }
+            } else codeIndex++;
             break;
         case ']':
             if (memory[ptr] !== 0) {
                 const target = findMatchingBracket(codeIndex, -1);
                 if (target === -1) { stopCode(); if (updateUI_) updateUI(); return false; }
                 codeIndex = target + 1;
-            } else {
-                codeIndex++;
-            }
+            } else codeIndex++;
             break;
         default:
             codeIndex++;
             break;
     }
-    
     if (updateUI_) updateUI();
     return true;
 }
@@ -1924,24 +2405,25 @@ function executeStepWithoutOptimization(updateUI_ = true) {
     return executeRawOp(cmd, updateUI_);
 }
 
-// Мгновенное выполнение с защитой от фриза через чанки и setTimeout.
 function executeAllStepsInstantNoOpt() {
     if (instantChunkTimer) {
         clearTimeout(instantChunkTimer);
         instantChunkTimer = null;
     }
     totalIterations = 0;
-    
     function runChunk() {
         if (!isRunning || isPaused || isStopped) {
             instantChunkTimer = null;
             return;
         }
-        
         let i = 0;
         for (; i < CHUNK_SIZE; i++) {
             if (codeIndex >= cleanCode.length) break;
-            executeStepWithoutOptimization(false);
+            if (!executeStepWithoutOptimization(false)) {
+                updateUI();
+                instantChunkTimer = null;
+                return;
+            }
             totalIterations++;
             if (totalIterations >= MAX_ITERATIONS) {
                 isStopped = true;
@@ -1954,24 +2436,18 @@ function executeAllStepsInstantNoOpt() {
                 return;
             }
         }
-        
         updateUI();
-        
         if (codeIndex >= cleanCode.length || isStopped) {
             if (history.length === 0 || history[history.length - 1].codeIndex !== codeIndex) {
                 saveHistory();
             }
             updateUI();
-            if (codeIndex >= cleanCode.length) {
-                stopCode();
-            }
+            if (codeIndex >= cleanCode.length) stopCode();
             instantChunkTimer = null;
             return;
         }
-        
         instantChunkTimer = setTimeout(runChunk, 0);
     }
-    
     runChunk();
 }
 
@@ -2011,6 +2487,9 @@ function runCode() {
         history = [];
         totalIterations = 0;
         document.getElementById('output').value = "";
+        outputHistory = [];
+        outputHistoryCounter = 0;
+        renderOutputHistory();
         const badge = document.getElementById('execTimeBadge');
         badge.textContent = '⏱️ --';
         badge.className = 'badge badge-std';
@@ -2044,6 +2523,8 @@ function waitCode() {
 
 function continueCode() {
     isPaused = false;
+    const statusEl = document.getElementById('execStatus');
+    statusEl.classList.remove('active');
     runCode();
 }
 
@@ -2068,6 +2549,9 @@ function stepForward() {
         history = [];
         totalIterations = 0;
         document.getElementById('output').value = "";
+        outputHistory = [];
+        outputHistoryCounter = 0;
+        renderOutputHistory();
         isRunning = true;
         isStopped = false;
     }
@@ -2089,11 +2573,11 @@ function stepBackward() {
     rawCodeIndex = prevState.rawCodeIndex;
     document.getElementById('output').value = prevState.output;
     inputIndex = prevState.inputIndex;
-    // Если история пуста — мы в самом начале, сбрасываем isRunning,
-    // чтобы Run начинал выполнение заново с чистой памятью.
-    if (history.length === 0) {
-        isRunning = false;
+    if (typeof prevState.outputHistoryLen === 'number') {
+        outputHistory.length = Math.min(outputHistory.length, prevState.outputHistoryLen);
+        outputHistoryCounter = prevState.outputHistoryCounter || outputHistory.length;
     }
+    if (history.length === 0) isRunning = false;
     updateUI();
 }
 
@@ -2128,6 +2612,9 @@ function loadExample() {
     document.getElementById('output').value = "";
     history = [];
     totalIterations = 0;
+    outputHistory = [];
+    outputHistoryCounter = 0;
+    renderOutputHistory();
     const badge = document.getElementById('execTimeBadge');
     badge.textContent = '⏱️ --';
     badge.className = 'badge badge-std';
@@ -2145,6 +2632,9 @@ function clearAll() {
     history = [];
     totalRawCommands = 0;
     totalIterations = 0;
+    outputHistory = [];
+    outputHistoryCounter = 0;
+    renderOutputHistory();
     const badge = document.getElementById('execTimeBadge');
     badge.textContent = '⏱️ --';
     badge.className = 'badge badge-std';
@@ -2192,31 +2682,17 @@ function updateEOIChar() {
 function applyRange() {
     const minInput = document.getElementById('minValueInput');
     const maxInput = document.getElementById('maxValueInput');
-
     let minVal = parseInt(minInput.value);
     let maxVal = parseInt(maxInput.value);
-
     if (isNaN(minVal)) minVal = 0;
     if (isNaN(maxVal)) maxVal = 255;
-
-    if (minVal > maxVal) {
-        [minVal, maxVal] = [maxVal, minVal];
-    }
-
-    if (maxVal - minVal > MAX_RANGE_SIZE) {
-        maxVal = minVal + MAX_RANGE_SIZE;
-    }
-
+    if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
+    if (maxVal - minVal > MAX_RANGE_SIZE) maxVal = minVal + MAX_RANGE_SIZE;
     MIN_VALUE = minVal;
     MAX_VALUE = maxVal;
-
     minInput.value = MIN_VALUE;
     maxInput.value = MAX_VALUE;
-
-    for (let i = 0; i < memory.length; i++) {
-        memory[i] = normalizeValue(memory[i]);
-    }
-
+    for (let i = 0; i < memory.length; i++) memory[i] = normalizeValue(memory[i]);
     updateUI();
     updateStats();
 }
@@ -2239,6 +2715,9 @@ function resizeTape() {
     history = [];
     totalIterations = 0;
     document.getElementById('output').value = "";
+    outputHistory = [];
+    outputHistoryCounter = 0;
+    renderOutputHistory();
     const badge = document.getElementById('execTimeBadge');
     badge.textContent = '⏱️ --';
     badge.className = 'badge badge-std';
@@ -2247,39 +2726,209 @@ function resizeTape() {
 }
 
 // =====================================================================
+// ГЕНЕРАТОР BF-КОДА
+// =====================================================================
+
+let generatedVariant1 = '';
+let generatedVariant2 = '';
+
+function openBfGenerator() {
+    document.getElementById('bfGenOverlay').classList.add('open');
+    generateBfCode();
+}
+
+function closeBfGenerator() {
+    document.getElementById('bfGenOverlay').classList.remove('open');
+}
+
+// Простой вариант: только + - .
+function generateSimpleBf(text) {
+    let code = '';
+    let current = 0;
+    for (const ch of text) {
+        let target = ch.codePointAt(0) % 256;
+        const diff = target - current;
+        if (diff > 0) code += '+'.repeat(diff);
+        else if (diff < 0) code += '-'.repeat(-diff);
+        code += '.';
+        current = target;
+    }
+    return code;
+}
+
+// Стоимость forward-перехода delta (0..255).
+// Схема: +q [->b+<] > [-<+>] < +r, где q*b+r = delta
+function costOfDelta(delta) {
+    if (delta === 0) return 0;
+    let best = delta;
+    for (let b = 2; b <= 20; b++) {
+        const q = Math.floor(delta / b);
+        const r = delta - q * b;
+        if (q > 30) continue;
+        // +q [->b+<] > [-<+>] < +r
+        const cost = q + 4 + b + 3 + 1 + 5 + 1 + r;
+        if (cost < best) best = cost;
+    }
+    return best;
+}
+
+// Строит forward-переход delta (0..255) в направлении плюсов.
+// Использует 2 ячейки. Переносим значение из cell1 в cell0 командой [-<+>]
+function buildDelta(delta) {
+    if (delta === 0) return '';
+    let best = null;
+    let bestCost = delta + 1;
+    for (let b = 2; b <= 20; b++) {
+        const q = Math.floor(delta / b);
+        const r = delta - q * b;
+        if (q > 30) continue;
+        const cost = q + 4 + b + 3 + 1 + 5 + 1 + r;
+        if (cost < bestCost) {
+            bestCost = cost;
+            best = { q, b, r };
+        }
+    }
+    if (!best) return '+'.repeat(delta);
+    // +q [->b+<] > [-<+>] < +r
+    let s = '+'.repeat(best.q);
+    s += '[->' + '+'.repeat(best.b) + '<]';
+    s += '>';                // в cell1
+    s += '[-<+>]';           // перенос cell1 -> cell0
+    s += '<';                // обратно в cell0
+    if (best.r > 0) s += '+'.repeat(best.r);
+    return s;
+}
+
+function generateOptimizedBf(text) {
+    let code = '';
+    let current = 0;
+
+    for (const ch of text) {
+        const target = ch.codePointAt(0) % 256;
+
+        if (target === current) {
+            code += '.';
+            continue;
+        }
+
+        const resetCost = (current !== 0 ? 3 : 0) + target;
+        const forward = (target - current + 256) % 256;
+        const fwdCost = costOfDelta(forward);
+        const backward = (current - target + 256) % 256;
+        const bwdCost = backward;
+
+        const best = Math.min(resetCost, fwdCost, bwdCost);
+
+        if (best === resetCost) {
+            code += (current !== 0 ? '[-]' : '') + '+'.repeat(target) + '.';
+        } else if (best === fwdCost) {
+            code += buildDelta(forward) + '.';
+        } else {
+            code += '-'.repeat(backward) + '.';
+        }
+        current = target;
+    }
+    return code;
+}
+
+function generateBfCode() {
+    const t = translations[currentLang];
+    const input = document.getElementById('genInput').value;
+    const errEl = document.getElementById('genError');
+
+    if (!input) {
+        generatedVariant1 = '';
+        generatedVariant2 = '';
+        document.getElementById('genCode1').textContent = '—';
+        document.getElementById('genCode2').textContent = '—';
+        document.getElementById('genMeta1').textContent = '—';
+        document.getElementById('genMeta2').textContent = '—';
+        document.getElementById('genBadge1').textContent = '—';
+        document.getElementById('genBadge2').textContent = '—';
+        errEl.classList.remove('show');
+        return;
+    }
+
+    let hasOutOfRange = false;
+    for (const ch of input) {
+        if (ch.codePointAt(0) > 255) { hasOutOfRange = true; break; }
+    }
+    if (hasOutOfRange) {
+        errEl.textContent = t.genWarning;
+        errEl.classList.add('show');
+    } else {
+        errEl.classList.remove('show');
+    }
+
+    generatedVariant1 = generateSimpleBf(input);
+    generatedVariant2 = generateOptimizedBf(input);
+
+    document.getElementById('genCode1').textContent = generatedVariant1;
+    document.getElementById('genCode2').textContent = generatedVariant2;
+
+    const len1 = generatedVariant1.length;
+    const len2 = generatedVariant2.length;
+    const saved = len1 > 0 ? Math.round((1 - len2 / len1) * 100) : 0;
+
+    document.getElementById('genMeta1').textContent = len1 + ' ' + t.genChars;
+    document.getElementById('genMeta2').textContent = len2 + ' ' + t.genChars;
+
+    document.getElementById('genBadge1').textContent = t.genBadgeSlow;
+    if (saved > 0) {
+        document.getElementById('genBadge2').textContent = '−' + saved + '%';
+    } else if (saved < 0) {
+        document.getElementById('genBadge2').textContent = '+' + Math.abs(saved) + '%';
+    } else {
+        document.getElementById('genBadge2').textContent = t.genEqual;
+    }
+}
+
+function applyGenerated(variant) {
+    let code = '';
+    if (variant === 1) code = generatedVariant1;
+    else if (variant === 2) code = generatedVariant2;
+    if (!code) return;
+    document.getElementById('code').value = code;
+    updateCodeHighlight();
+    closeBfGenerator();
+}
+
+function copyGenerated(variant) {
+    const code = variant === 1 ? generatedVariant1 : generatedVariant2;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(function() {
+        alert(translations[currentLang].genCopied);
+    }).catch(function() {
+        prompt('Copy:', code);
+    });
+}
+
+// =====================================================================
 // КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT
 // =====================================================================
 
 function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiReverse) {
     const clean = code.split('').filter(c => '><+-.,[]'.includes(c)).join('');
-    
     let bracketMap = {};
     let stack = [];
-    
     for (let i = 0; i < clean.length; i++) {
-        if (clean[i] === '[') {
-            stack.push(i);
-        } else if (clean[i] === ']') {
+        if (clean[i] === '[') stack.push(i);
+        else if (clean[i] === ']') {
             if (stack.length > 0) {
                 let start = stack.pop();
                 bracketMap[start] = i;
                 bracketMap[i] = start;
-            } else {
-                throw new Error('Unbalanced brackets: unexpected "]" at position ' + i);
-            }
+            } else throw new Error('Unbalanced brackets: unexpected "]" at position ' + i);
         }
     }
-    if (stack.length > 0) {
-        throw new Error('Unbalanced brackets: ' + stack.length + ' unclosed "["');
-    }
-    
-    // Сериализуем ASCII-карты в JS-код
+    if (stack.length > 0) throw new Error('Unbalanced brackets: ' + stack.length + ' unclosed "["');
+
     const asciiMapJSON = JSON.stringify(asciiMap || {});
     const asciiReverseJSON = JSON.stringify(asciiReverse || {});
-    
+
     let jsCode = [];
     let indent = 0;
-    
+
     jsCode.push(`(function() {`);
     jsCode.push(`  const TAPE_SIZE = ${tapeSize};`);
     jsCode.push(`  const MEMORY_MODE = ${JSON.stringify(memMode || 'bounded')};`);
@@ -2289,12 +2938,8 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiRev
     jsCode.push(`  const inputStr = \`${(input || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;`);
     jsCode.push(`  let outputParts = [];`);
     jsCode.push(``);
-    
-    const minValStr = String(MIN_VALUE);
-    const maxValStr = String(MAX_VALUE);
-    
-    jsCode.push(`  const MIN_VALUE = ${minValStr};`);
-    jsCode.push(`  const MAX_VALUE = ${maxValStr};`);
+    jsCode.push(`  const MIN_VALUE = ${String(MIN_VALUE)};`);
+    jsCode.push(`  const MAX_VALUE = ${String(MAX_VALUE)};`);
     jsCode.push(``);
     jsCode.push(`  const ASCII_MAP = ${asciiMapJSON};`);
     jsCode.push(`  const ASCII_REVERSE = ${asciiReverseJSON};`);
@@ -2341,9 +2986,7 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiRev
     jsCode.push(`    }`);
     jsCode.push(`    if (CONTROL_REVERSE[code] !== undefined) {`);
     jsCode.push(`      const behavior = getControlBehavior(CONTROL_REVERSE[code]);`);
-    jsCode.push(`      if (behavior !== null) {`);
-    jsCode.push(`        outputParts.push(behavior);`);
-    jsCode.push(`      }`);
+    jsCode.push(`      if (behavior !== null) outputParts.push(behavior);`);
     jsCode.push(`      return;`);
     jsCode.push(`    }`);
     jsCode.push(`    if (code >= 0 && code <= 0x10FFFF && code >= 32 && !CONTROL_CODES.has(code)) {`);
@@ -2357,12 +3000,11 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiRev
     jsCode.push(`    }`);
     jsCode.push(`  }`);
     jsCode.push(``);
-    
+
     let i = 0;
     while (i < clean.length) {
         const cmd = clean[i];
         const indentStr = '  '.repeat(indent + 1);
-        
         if (cmd === '[') {
             if (bracketMap[i] !== undefined) {
                 jsCode.push(`${indentStr}while (memory[ptr] !== 0) {`);
@@ -2379,18 +3021,12 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiRev
         } else {
             switch(cmd) {
                 case '>':
-                    if (memMode === 'wrap') {
-                        jsCode.push(`${indentStr}ptr = (ptr + 1) % TAPE_SIZE;`);
-                    } else {
-                        jsCode.push(`${indentStr}if (ptr < TAPE_SIZE - 1) ptr++;`);
-                    }
+                    if (memMode === 'wrap') jsCode.push(`${indentStr}ptr = (ptr + 1) % TAPE_SIZE;`);
+                    else jsCode.push(`${indentStr}if (ptr < TAPE_SIZE - 1) ptr++;`);
                     break;
                 case '<':
-                    if (memMode === 'wrap') {
-                        jsCode.push(`${indentStr}ptr = (ptr - 1 + TAPE_SIZE) % TAPE_SIZE;`);
-                    } else {
-                        jsCode.push(`${indentStr}if (ptr > 0) ptr--;`);
-                    }
+                    if (memMode === 'wrap') jsCode.push(`${indentStr}ptr = (ptr - 1 + TAPE_SIZE) % TAPE_SIZE;`);
+                    else jsCode.push(`${indentStr}if (ptr > 0) ptr--;`);
                     break;
                 case '+':
                     jsCode.push(`${indentStr}memory[ptr] = normalize(memory[ptr] + 1);`);
@@ -2418,15 +3054,15 @@ function compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiRev
         }
         i++;
     }
-    
+
     jsCode.push(`  return outputParts.join('');`);
     jsCode.push(`})()`);
-    
+
     return jsCode.join('\n');
 }
 
 // =====================================================================
-// ВЫПОЛНЕНИЕ В WEB WORKER
+// WORKER
 // =====================================================================
 
 let worker = null;
@@ -2434,17 +3070,16 @@ let workerRunning = false;
 
 function runInWorker() {
     if (workerRunning) return;
-    
     const code = document.getElementById('code').value;
     const input = document.getElementById('inputBuffer').value;
     const tapeSize = parseInt(document.getElementById('tapeSizeInput').value) || 1000;
     const memMode = document.getElementById('memoryModeSelect').value;
-    
+
     try {
         const asciiMap = getCurrentAsciiMap();
         const asciiReverse = getCurrentAsciiReverse();
         const jsProgram = compileBrainfuckToJS(code, input, tapeSize, memMode, asciiMap, asciiReverse);
-        
+
         const workerCode = `
             self.onmessage = function(e) {
                 if (e.data.type === 'start') {
@@ -2458,62 +3093,49 @@ function runInWorker() {
                 }
             };
         `;
-        
+
         const blob = new Blob([workerCode], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(blob);
-        
         worker = new Worker(workerUrl);
         workerRunning = true;
-        
+
         document.getElementById('execStatus').textContent = '🚀 Running in Worker...';
         document.getElementById('execStatus').classList.add('active');
         document.getElementById('btnWorker').textContent = '⏳ Working...';
         document.getElementById('btnWorker').style.background = '#f9e2af';
         document.getElementById('btnWorker').disabled = true;
-        
+
         const startTime = performance.now();
-        
+
         worker.onmessage = function(e) {
             if (e.data.type === 'done') {
                 const endTime = performance.now();
                 const elapsed = ((endTime - startTime) / 1000).toFixed(2);
-                
                 document.getElementById('output').value = e.data.result;
                 document.getElementById('execStatus').textContent = '✅ Done!';
                 document.getElementById('execStatus').classList.remove('active');
-                
                 const badge = document.getElementById('execTimeBadge');
                 badge.textContent = `⏱️ ${elapsed}s`;
                 badge.className = 'badge badge-worker';
-                
                 workerRunning = false;
                 document.getElementById('btnWorker').textContent = '🚀 Worker';
                 document.getElementById('btnWorker').style.background = '';
                 document.getElementById('btnWorker').disabled = false;
-                
-                if (worker) {
-                    worker.terminate();
-                    worker = null;
-                }
+                if (worker) { worker.terminate(); worker = null; }
                 URL.revokeObjectURL(workerUrl);
             } else if (e.data.type === 'error') {
                 document.getElementById('output').value = 'Error: ' + e.data.error;
                 document.getElementById('execStatus').textContent = '❌ Error!';
                 document.getElementById('execStatus').classList.remove('active');
-                
                 workerRunning = false;
                 document.getElementById('btnWorker').textContent = '🚀 Worker';
                 document.getElementById('btnWorker').style.background = '';
                 document.getElementById('btnWorker').disabled = false;
-                
-                if (worker) {
-                    worker.terminate();
-                    worker = null;
-                }
+                if (worker) { worker.terminate(); worker = null; }
                 URL.revokeObjectURL(workerUrl);
             }
         };
-        
+
         worker.postMessage({ type: 'start', code: jsProgram });
     } catch(e) {
         document.getElementById('output').value = 'Compilation error: ' + e.message;
@@ -2525,7 +3147,7 @@ function runInWorker() {
 }
 
 // =====================================================================
-// КОМПИЛЯЦИЯ В JS (ПРЕДПРОСМОТР) — через new Function, без eval
+// КОМПИЛЯЦИЯ В JS
 // =====================================================================
 
 function compileToJS() {
@@ -2533,7 +3155,7 @@ function compileToJS() {
     const input = document.getElementById('inputBuffer').value;
     const tapeSize = parseInt(document.getElementById('tapeSizeInput').value) || 1000;
     const memMode = document.getElementById('memoryModeSelect').value;
-    
+
     let jsProgram;
     try {
         const asciiMap = getCurrentAsciiMap();
@@ -2546,11 +3168,11 @@ function compileToJS() {
         badge.className = 'badge badge-warn';
         return;
     }
-    
+
     console.log('=== COMPILED JS ===');
     console.log(jsProgram);
     console.log('=== END ===');
-    
+
     const startTime = performance.now();
     try {
         const fn = new Function('return ' + jsProgram);
@@ -2561,9 +3183,7 @@ function compileToJS() {
         const badge = document.getElementById('execTimeBadge');
         badge.textContent = `⏱️ ${elapsed}s`;
         badge.className = 'badge badge-worker';
-        setTimeout(() => {
-            document.getElementById('execStatus').textContent = '';
-        }, 2000);
+        setTimeout(() => { document.getElementById('execStatus').textContent = ''; }, 2000);
     } catch(e) {
         document.getElementById('output').value = 'Compilation error: ' + e.message;
         const badge = document.getElementById('execTimeBadge');
@@ -2573,50 +3193,272 @@ function compileToJS() {
 }
 
 // =====================================================================
+// SHARE LINK
+// =====================================================================
+
+function generateShareLink() {
+    const state = {
+        code: document.getElementById('code').value,
+        input: document.getElementById('inputBuffer').value,
+        memMode: document.getElementById('memoryModeSelect').value,
+        tapeSize: parseInt(document.getElementById('tapeSizeInput').value) || 1000,
+        minVal: MIN_VALUE,
+        maxVal: MAX_VALUE,
+        eoiMode: eoiMode,
+        eoiChar: eoiCharCode,
+        cellNames: cellNames,
+        asciiRaw: customAsciiRawText,
+        lang: currentLang
+    };
+    try {
+        const json = JSON.stringify(state);
+        const encoded = btoa(unescape(encodeURIComponent(json)));
+        const url = location.origin + location.pathname + '#bf=' + encoded;
+        navigator.clipboard.writeText(url).then(function() {
+            const btn = document.getElementById('btnShare');
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            btn.style.background = '#a6e3a1';
+            setTimeout(function() {
+                btn.textContent = orig;
+                btn.style.background = '';
+            }, 1500);
+        }).catch(function() {
+            prompt('Copy this link:', url);
+        });
+    } catch (e) {
+        alert('Failed to generate link: ' + e.message);
+    }
+}
+
+function loadFromHash() {
+    const hash = location.hash;
+    if (!hash.startsWith('#bf=')) return false;
+    try {
+        const encoded = hash.substring(4);
+        const json = decodeURIComponent(escape(atob(encoded)));
+        const state = JSON.parse(json);
+
+        if (state.asciiRaw) {
+            const parsed = parseAsciiTable(state.asciiRaw);
+            if (Object.keys(parsed.map).length > 0) {
+                customAsciiMap = parsed.map;
+                customAsciiReverse = buildReverseMap(parsed.map);
+                customAsciiRawText = state.asciiRaw;
+            }
+        } else {
+            customAsciiMap = null;
+            customAsciiReverse = null;
+            customAsciiRawText = null;
+        }
+
+        MIN_VALUE = state.minVal !== undefined ? state.minVal : 0;
+        MAX_VALUE = state.maxVal !== undefined ? state.maxVal : 255;
+        document.getElementById('minValueInput').value = MIN_VALUE;
+        document.getElementById('maxValueInput').value = MAX_VALUE;
+
+        TAPE_SIZE = state.tapeSize || 1000;
+        document.getElementById('tapeSizeInput').value = TAPE_SIZE;
+        memory = new Array(TAPE_SIZE).fill(0);
+
+        memoryMode = state.memMode || 'bounded';
+        document.getElementById('memoryModeSelect').value = memoryMode;
+
+        eoiMode = state.eoiMode || 'zero';
+        eoiCharCode = state.eoiChar || 0;
+        document.getElementById('eoiModeSelect').value = eoiMode;
+        document.getElementById('eoiCharInput').value = eoiCharCode;
+        document.getElementById('eoiCharInput').disabled = (eoiMode === 'unchanged');
+
+        cellNames = state.cellNames || {};
+
+        document.getElementById('code').value = state.code || '';
+        document.getElementById('inputBuffer').value = state.input || '';
+        document.getElementById('output').value = '';
+
+        outputHistory = [];
+        outputHistoryCounter = 0;
+
+        // Язык: применяем последним, чтобы все переводы применились
+        const desiredLang = state.lang === 'ru' ? 'ru' : 'en';
+        switchLanguage(desiredLang);
+
+        initTape();
+        updateAsciiBadge();
+        updateAsciiTableDisplay();
+        updateUI();
+        updateCodeHighlight();
+        return true;
+    } catch (e) {
+        console.error('Failed to load state from URL:', e);
+        return false;
+    }
+}
+
+// =====================================================================
 // ИНИЦИАЛИЗАЦИЯ
 // =====================================================================
 
 window.onload = function() {
     switchLanguage('en');
-    
-    document.getElementById('minValueInput').value = '0';
-    document.getElementById('maxValueInput').value = '255';
-    
-    MIN_VALUE = 0;
-    MAX_VALUE = 255;
-    
-    eoiMode = document.getElementById('eoiModeSelect').value;
-    updateEOIMode();
-    updateEOIChar();
-    
+
+    const loaded = loadFromHash();
+
+    if (!loaded) {
+        document.getElementById('minValueInput').value = '0';
+        document.getElementById('maxValueInput').value = '255';
+        MIN_VALUE = 0;
+        MAX_VALUE = 255;
+        eoiMode = document.getElementById('eoiModeSelect').value;
+        updateEOIMode();
+        updateEOIChar();
+    }
+
     document.getElementById('eoiCharInput').addEventListener('input', updateEOIChar);
-    
-    initTape();
-    updateUI();
+
+    if (!loaded) {
+        initTape();
+        updateUI();
+    }
+
     window.addEventListener('resize', function() { moveArrowVisual(ptr); });
     updateExamplesDropdown();
     updateCodeHighlight();
-    updateMemoryMode();
+    if (!loaded) updateMemoryMode();
     updateStats();
     updateAsciiBadge();
-    updateAsciiTableDisplay();
-    
+    if (!loaded) updateAsciiTableDisplay();
+
     document.getElementById('tapeContainer').addEventListener('scroll', function() {
         moveArrowVisual(ptr);
     });
-}
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeAsciiEditor();
+        if (e.key === 'Escape') { closeAsciiEditor(); closeNameEditor(); closeBfGenerator(); }
     });
-    
     const overlay = document.getElementById('asciiEditorOverlay');
     if (overlay) {
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeAsciiEditor();
         });
     }
+    const bfGenOverlay = document.getElementById('bfGenOverlay');
+    if (bfGenOverlay) {
+        bfGenOverlay.addEventListener('click', function(e) {
+            if (e.target === bfGenOverlay) closeBfGenerator();
+        });
+    }
+    document.addEventListener('click', function(e) {
+        if (nameEditorEl && !nameEditorEl.contains(e.target)) {
+            if (!e.target.closest('.cell')) closeNameEditor();
+        }
+    });
+
+    // ============= Подсветка скобок на hover =============
+    const codeTA = document.getElementById('code');
+
+    function getCharIndexFromPoint(clientX, clientY) {
+        let pos = -1;
+        if (document.caretPositionFromPoint) {
+            const p = document.caretPositionFromPoint(clientX, clientY);
+            if (p && p.offsetNode === codeTA) pos = p.offset;
+        } else if (document.caretRangeFromPoint) {
+            const r = document.caretRangeFromPoint(clientX, clientY);
+            if (r && r.startContainer === codeTA) pos = r.startOffset;
+        }
+        return pos;
+    }
+
+    function clearBracketHover() {
+        if (hoveredBracketRawIndex !== -1) {
+            hoveredBracketRawIndex = -1;
+            bracketMatchRawIndex = -1;
+            bracketUnmatched = false;
+            updateCodeHighlight();
+        }
+    }
+
+    function updateBracketFromMouse(clientX, clientY) {
+        const rect = codeTA.getBoundingClientRect();
+        const style = window.getComputedStyle(codeTA);
+        const paddingTop = parseFloat(style.paddingTop) || 0;
+        const paddingLeft = parseFloat(style.paddingLeft) || 0;
+        const lineHeight = parseFloat(style.lineHeight) || 24;
+
+        const text = codeTA.value;
+        const lines = text.split('\n');
+        const totalLines = Math.max(1, lines.length);
+
+        const yInText = clientY - rect.top - paddingTop + codeTA.scrollTop;
+        const lineIdx = Math.floor(yInText / lineHeight);
+
+        if (clientY < rect.top + paddingTop) { clearBracketHover(); return; }
+        if (lineIdx < 0 || lineIdx >= totalLines) { clearBracketHover(); return; }
+
+        const span = document.createElement('span');
+        span.style.visibility = 'hidden';
+        span.style.position = 'absolute';
+        span.style.fontFamily = style.fontFamily;
+        span.style.fontSize = style.fontSize;
+        span.textContent = 'M';
+        document.body.appendChild(span);
+        const charWidth = span.offsetWidth || 8;
+        document.body.removeChild(span);
+
+        const xInText = clientX - rect.left - paddingLeft + codeTA.scrollLeft;
+        const lineLen = lines[lineIdx].length;
+        const maxX = lineLen * charWidth;
+        if (xInText < -charWidth / 2 || xInText > maxX + charWidth / 2) {
+            clearBracketHover();
+            return;
+        }
+
+        const pos = getCharIndexFromPoint(clientX, clientY);
+        if (pos < 0) { clearBracketHover(); return; }
+
+        let targetChar = text[pos];
+        let idx = pos;
+        if (targetChar !== '[' && targetChar !== ']') {
+            if (text[pos - 1] === '[' || text[pos - 1] === ']') {
+                idx = pos - 1;
+                targetChar = text[pos - 1];
+            } else {
+                clearBracketHover();
+                return;
+            }
+        }
+        if (idx === hoveredBracketRawIndex) return;
+        const matchIdx = findMatchingBracketInRaw(idx);
+        hoveredBracketRawIndex = idx;
+        bracketMatchRawIndex = matchIdx;
+        bracketUnmatched = (matchIdx === -1);
+        updateCodeHighlight();
+    }
+
+    codeTA.addEventListener('mousemove', function(e) {
+        updateBracketFromMouse(e.clientX, e.clientY);
+    });
+
+    codeTA.addEventListener('mouseleave', clearBracketHover);
+
+    codeTA.addEventListener('input', function() {
+        if (hoveredBracketRawIndex !== -1) {
+            const text = codeTA.value;
+            if (hoveredBracketRawIndex >= text.length ||
+                (text[hoveredBracketRawIndex] !== '[' && text[hoveredBracketRawIndex] !== ']')) {
+                clearBracketHover();
+            } else {
+                const matchIdx = findMatchingBracketInRaw(hoveredBracketRawIndex);
+                bracketMatchRawIndex = matchIdx;
+                bracketUnmatched = (matchIdx === -1);
+            }
+        }
+        updateCodeHighlight();
+    });
+
+    codeTA.addEventListener('scroll', syncHighlightScroll);
 });
 </script>
 </body>
