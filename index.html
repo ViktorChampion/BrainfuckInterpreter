@@ -877,126 +877,6 @@
             color: var(--success-color);
             font-weight: bold;
         }
-
-        .bf-gen-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .bf-gen-overlay.open { display: flex; }
-        .bf-gen {
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            max-width: 900px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.5);
-        }
-        .bf-gen h2 {
-            margin-top: 0;
-            color: var(--accent-color);
-        }
-        .bf-gen .gen-hint {
-            color: #6c7086;
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-        .bf-gen .gen-input {
-            width: 100%;
-            height: 80px;
-            background: #181825;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            resize: vertical;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .bf-gen .gen-input:focus {
-            border-color: var(--accent-color);
-        }
-        .bf-gen .gen-result-block {
-            margin-top: 15px;
-            background: #181825;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-        }
-        .bf-gen .gen-result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .bf-gen .gen-result-title {
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-        .bf-gen .gen-result-meta {
-            font-size: 12px;
-            color: #6c7086;
-        }
-        .bf-gen .gen-result-code {
-            background: #11111b;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            color: var(--text-color);
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 160px;
-            overflow-y: auto;
-            line-height: 1.4;
-        }
-        .bf-gen .gen-result-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .bf-gen .gen-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        .bf-gen .gen-badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-left: 6px;
-        }
-        .bf-gen .gen-badge-fast {
-            background: rgba(166, 227, 161, 0.2);
-            color: #a6e3a1;
-        }
-        .bf-gen .gen-badge-slow {
-            background: rgba(243, 139, 168, 0.2);
-            color: #f38ba8;
-        }
-        .bf-gen .gen-error {
-            color: #f38ba8;
-            font-size: 13px;
-            margin-top: 8px;
-            display: none;
-        }
-        .bf-gen .gen-error.show { display: block; }
     </style>
 </head>
 <body>
@@ -1013,7 +893,6 @@
             </select>
             <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">RU</button>
             <button class="btn btn-ascii" id="btnAscii" onclick="openAsciiEditor()">📝 ASCII</button>
-            <button class="btn btn-share" id="btnGen" onclick="openBfGenerator()" style="background: #f9e2af; color: #11111b;">✨ Generate</button>
             <button class="btn btn-share" id="btnShare" onclick="generateShareLink()">🔗 Share</button>
         </div>
     </header>
@@ -1151,46 +1030,6 @@
             <button class="btn btn-save-editor" id="btnApplyAscii" onclick="saveAsciiTable()">✅ Apply</button>
             <button class="btn btn-reset-editor" id="btnResetAscii" onclick="resetAsciiTable()">↺ Reset</button>
             <button class="btn btn-close-editor" id="btnCloseAscii" onclick="closeAsciiEditor()">✖ Close</button>
-        </div>
-    </div>
-</div>
-
-<div class="bf-gen-overlay" id="bfGenOverlay">
-    <div class="bf-gen">
-        <h2 id="bfGenTitle">✨ Brainfuck Generator</h2>
-        <p class="gen-hint" id="bfGenHint">
-            Введи текст — получишь два варианта BF-кода: простой (<code>+</code>, <code>-</code>, <code>.</code>) и оптимизированный (с циклами <code>[->+++&lt;]</code>, использует 1–2 ячейки).
-        </p>
-
-        <textarea class="gen-input" id="genInput" placeholder="Hello, World!" oninput="generateBfCode()"></textarea>
-        <div class="gen-error" id="genError"></div>
-
-        <div class="gen-result-block">
-            <div class="gen-result-header">
-                <span class="gen-result-title"><span id="genVariant1Title">Вариант 1: простой</span> <span class="gen-badge gen-badge-slow" id="genBadge1">—</span></span>
-                <span class="gen-result-meta" id="genMeta1">—</span>
-            </div>
-            <div class="gen-result-code" id="genCode1">—</div>
-            <div class="gen-result-actions">
-                <button class="btn btn-save-editor" id="genApply1" onclick="applyGenerated(1)" style="padding: 6px 12px; font-size: 13px;">↪ Применить</button>
-                <button class="btn" id="genCopy1" onclick="copyGenerated(1)" style="padding: 6px 12px; font-size: 13px; background: var(--border-color); color: var(--text-color);">📋 Копировать</button>
-            </div>
-        </div>
-
-        <div class="gen-result-block">
-            <div class="gen-result-header">
-                <span class="gen-result-title"><span id="genVariant2Title">Вариант 2: оптимизированный</span> <span class="gen-badge gen-badge-fast" id="genBadge2">—</span></span>
-                <span class="gen-result-meta" id="genMeta2">—</span>
-            </div>
-            <div class="gen-result-code" id="genCode2">—</div>
-            <div class="gen-result-actions">
-                <button class="btn btn-save-editor" id="genApply2" onclick="applyGenerated(2)" style="padding: 6px 12px; font-size: 13px;">↪ Применить</button>
-                <button class="btn" id="genCopy2" onclick="copyGenerated(2)" style="padding: 6px 12px; font-size: 13px; background: var(--border-color); color: var(--text-color);">📋 Копировать</button>
-            </div>
-        </div>
-
-        <div class="gen-actions">
-            <button class="btn btn-close-editor" id="genClose" onclick="closeBfGenerator()" style="padding: 8px 14px;">✖ Закрыть</button>
         </div>
     </div>
 </div>
@@ -1681,21 +1520,7 @@ const translations = {
         outputHistoryEmpty: "No output yet. Run the program to see history.",
         statCommands: "Commands:",
         statSpeed: "Speed:",
-        btnGenerate: "✨ Generate",
         btnAscii: "📝 ASCII",
-        bfGenTitle: "✨ Brainfuck Generator",
-        bfGenHint: 'Enter text — you\'ll get two versions of BF code: simple (<code>+</code>, <code>-</code>, <code>.</code>) and optimized (with loops <code>[->+++&lt;]</code>, uses 1–2 cells).',
-        genVariant1: "Variant 1: simple",
-        genVariant2: "Variant 2: optimized",
-        genApply: "↪ Apply",
-        genCopy: "📋 Copy",
-        genClose: "✖ Close",
-        genBadgeSlow: "slower",
-        genBadgeFast: "faster",
-        genEqual: "equal size",
-        genChars: "chars",
-        genWarning: "⚠️ Characters with code > 255 are not supported (standard 8-bit tape).",
-        genCopied: "Copied!",
         asciiEditorTitle: "✏️ Custom ASCII Table",
         asciiEditorHint: 'Format: <code>char = code1, code2, code3</code> (one per line)<br>Use control names: <code>NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BS, TAB, LF, VT, FF, CR, SO, SI, DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB, CAN, EM, SUB, ESC, FS, GS, RS, US, DEL</code>',
         btnApplyAscii: "✅ Apply",
@@ -1750,21 +1575,7 @@ const translations = {
         outputHistoryEmpty: "Пока нет вывода. Запустите программу, чтобы увидеть историю.",
         statCommands: "Команд:",
         statSpeed: "Скорость:",
-        btnGenerate: "✨ Генератор",
         btnAscii: "📝 ASCII",
-        bfGenTitle: "✨ Генератор Brainfuck",
-        bfGenHint: 'Введи текст — получишь два варианта BF-кода: простой (<code>+</code>, <code>-</code>, <code>.</code>) и оптимизированный (с циклами <code>[->+++&lt;]</code>, использует 1–2 ячейки).',
-        genVariant1: "Вариант 1: простой",
-        genVariant2: "Вариант 2: оптимизированный",
-        genApply: "↪ Применить",
-        genCopy: "📋 Копировать",
-        genClose: "✖ Закрыть",
-        genBadgeSlow: "медленнее",
-        genBadgeFast: "быстрее",
-        genEqual: "равный размер",
-        genChars: "символов",
-        genWarning: "⚠️ Символы с кодом > 255 не поддерживаются (стандартная 8-битная лента).",
-        genCopied: "Скопировано!",
         asciiEditorTitle: "✏️ Своя таблица ASCII",
         asciiEditorHint: 'Формат: <code>символ = код1, код2, код3</code> (по одному на строку)<br>Имена управляющих: <code>NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BS, TAB, LF, VT, FF, CR, SO, SI, DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB, CAN, EM, SUB, ESC, FS, GS, RS, US, DEL</code>',
         btnApplyAscii: "✅ Применить",
@@ -1862,7 +1673,6 @@ function switchLanguage(lang) {
     document.getElementById('btnStepBwd').innerText = t.btnStepBwd;
     document.getElementById('btnStop').innerText = t.btnStop;
     document.getElementById('btnClear').innerText = t.btnClear;
-    document.getElementById('btnGen').innerText = t.btnGenerate;
     document.getElementById('btnAscii').innerText = t.btnAscii;
     document.getElementById('optBounded').innerText = t.optBounded;
     document.getElementById('optWrap').innerText = t.optWrap;
@@ -1874,19 +1684,7 @@ function switchLanguage(lang) {
     if (document.getElementById('eoiOptUnchanged')) document.getElementById('eoiOptUnchanged').innerText = t.eoiUnchanged;
     if (document.getElementById('asciiTitle')) document.getElementById('asciiTitle').innerText = t.asciiTitle;
     if (document.getElementById('outputHistoryTitle')) document.getElementById('outputHistoryTitle').innerText = t.outputHistoryTitle;
-    // Статистика
     updateStatsLabels();
-    // Генератор
-    document.getElementById('bfGenTitle').innerText = t.bfGenTitle;
-    document.getElementById('bfGenHint').innerHTML = t.bfGenHint;
-    document.getElementById('genVariant1Title').innerText = t.genVariant1;
-    document.getElementById('genVariant2Title').innerText = t.genVariant2;
-    document.getElementById('genApply1').innerText = t.genApply;
-    document.getElementById('genApply2').innerText = t.genApply;
-    document.getElementById('genCopy1').innerText = t.genCopy;
-    document.getElementById('genCopy2').innerText = t.genCopy;
-    document.getElementById('genClose').innerText = t.genClose;
-    // ASCII editor
     document.getElementById('asciiEditorTitle').innerText = t.asciiEditorTitle;
     document.getElementById('asciiEditorHint').innerHTML = t.asciiEditorHint;
     document.getElementById('btnApplyAscii').innerText = t.btnApplyAscii;
@@ -1902,10 +1700,6 @@ function switchLanguage(lang) {
     updateAsciiBadge();
     updateAsciiTableDisplay();
     renderOutputHistory();
-    // Если открыт генератор — обновить бейджи
-    if (document.getElementById('bfGenOverlay').classList.contains('open')) {
-        generateBfCode();
-    }
 }
 
 function updateStatsLabels() {
@@ -2726,184 +2520,6 @@ function resizeTape() {
 }
 
 // =====================================================================
-// ГЕНЕРАТОР BF-КОДА
-// =====================================================================
-
-let generatedVariant1 = '';
-let generatedVariant2 = '';
-
-function openBfGenerator() {
-    document.getElementById('bfGenOverlay').classList.add('open');
-    generateBfCode();
-}
-
-function closeBfGenerator() {
-    document.getElementById('bfGenOverlay').classList.remove('open');
-}
-
-// Простой вариант: только + - .
-function generateSimpleBf(text) {
-    let code = '';
-    let current = 0;
-    for (const ch of text) {
-        let target = ch.codePointAt(0) % 256;
-        const diff = target - current;
-        if (diff > 0) code += '+'.repeat(diff);
-        else if (diff < 0) code += '-'.repeat(-diff);
-        code += '.';
-        current = target;
-    }
-    return code;
-}
-
-// Стоимость forward-перехода delta (0..255).
-// Схема: +q [->b+<] > [-<+>] < +r, где q*b+r = delta
-function costOfDelta(delta) {
-    if (delta === 0) return 0;
-    let best = delta;
-    for (let b = 2; b <= 20; b++) {
-        const q = Math.floor(delta / b);
-        const r = delta - q * b;
-        if (q > 30) continue;
-        // +q [->b+<] > [-<+>] < +r
-        const cost = q + 4 + b + 3 + 1 + 5 + 1 + r;
-        if (cost < best) best = cost;
-    }
-    return best;
-}
-
-// Строит forward-переход delta (0..255) в направлении плюсов.
-// Использует 2 ячейки. Переносим значение из cell1 в cell0 командой [-<+>]
-function buildDelta(delta) {
-    if (delta === 0) return '';
-    let best = null;
-    let bestCost = delta + 1;
-    for (let b = 2; b <= 20; b++) {
-        const q = Math.floor(delta / b);
-        const r = delta - q * b;
-        if (q > 30) continue;
-        const cost = q + 4 + b + 3 + 1 + 5 + 1 + r;
-        if (cost < bestCost) {
-            bestCost = cost;
-            best = { q, b, r };
-        }
-    }
-    if (!best) return '+'.repeat(delta);
-    // +q [->b+<] > [-<+>] < +r
-    let s = '+'.repeat(best.q);
-    s += '[->' + '+'.repeat(best.b) + '<]';
-    s += '>';                // в cell1
-    s += '[-<+>]';           // перенос cell1 -> cell0
-    s += '<';                // обратно в cell0
-    if (best.r > 0) s += '+'.repeat(best.r);
-    return s;
-}
-
-function generateOptimizedBf(text) {
-    let code = '';
-    let current = 0;
-
-    for (const ch of text) {
-        const target = ch.codePointAt(0) % 256;
-
-        if (target === current) {
-            code += '.';
-            continue;
-        }
-
-        const resetCost = (current !== 0 ? 3 : 0) + target;
-        const forward = (target - current + 256) % 256;
-        const fwdCost = costOfDelta(forward);
-        const backward = (current - target + 256) % 256;
-        const bwdCost = backward;
-
-        const best = Math.min(resetCost, fwdCost, bwdCost);
-
-        if (best === resetCost) {
-            code += (current !== 0 ? '[-]' : '') + '+'.repeat(target) + '.';
-        } else if (best === fwdCost) {
-            code += buildDelta(forward) + '.';
-        } else {
-            code += '-'.repeat(backward) + '.';
-        }
-        current = target;
-    }
-    return code;
-}
-
-function generateBfCode() {
-    const t = translations[currentLang];
-    const input = document.getElementById('genInput').value;
-    const errEl = document.getElementById('genError');
-
-    if (!input) {
-        generatedVariant1 = '';
-        generatedVariant2 = '';
-        document.getElementById('genCode1').textContent = '—';
-        document.getElementById('genCode2').textContent = '—';
-        document.getElementById('genMeta1').textContent = '—';
-        document.getElementById('genMeta2').textContent = '—';
-        document.getElementById('genBadge1').textContent = '—';
-        document.getElementById('genBadge2').textContent = '—';
-        errEl.classList.remove('show');
-        return;
-    }
-
-    let hasOutOfRange = false;
-    for (const ch of input) {
-        if (ch.codePointAt(0) > 255) { hasOutOfRange = true; break; }
-    }
-    if (hasOutOfRange) {
-        errEl.textContent = t.genWarning;
-        errEl.classList.add('show');
-    } else {
-        errEl.classList.remove('show');
-    }
-
-    generatedVariant1 = generateSimpleBf(input);
-    generatedVariant2 = generateOptimizedBf(input);
-
-    document.getElementById('genCode1').textContent = generatedVariant1;
-    document.getElementById('genCode2').textContent = generatedVariant2;
-
-    const len1 = generatedVariant1.length;
-    const len2 = generatedVariant2.length;
-    const saved = len1 > 0 ? Math.round((1 - len2 / len1) * 100) : 0;
-
-    document.getElementById('genMeta1').textContent = len1 + ' ' + t.genChars;
-    document.getElementById('genMeta2').textContent = len2 + ' ' + t.genChars;
-
-    document.getElementById('genBadge1').textContent = t.genBadgeSlow;
-    if (saved > 0) {
-        document.getElementById('genBadge2').textContent = '−' + saved + '%';
-    } else if (saved < 0) {
-        document.getElementById('genBadge2').textContent = '+' + Math.abs(saved) + '%';
-    } else {
-        document.getElementById('genBadge2').textContent = t.genEqual;
-    }
-}
-
-function applyGenerated(variant) {
-    let code = '';
-    if (variant === 1) code = generatedVariant1;
-    else if (variant === 2) code = generatedVariant2;
-    if (!code) return;
-    document.getElementById('code').value = code;
-    updateCodeHighlight();
-    closeBfGenerator();
-}
-
-function copyGenerated(variant) {
-    const code = variant === 1 ? generatedVariant1 : generatedVariant2;
-    if (!code) return;
-    navigator.clipboard.writeText(code).then(function() {
-        alert(translations[currentLang].genCopied);
-    }).catch(function() {
-        prompt('Copy:', code);
-    });
-}
-
-// =====================================================================
 // КОМПИЛЯТОР BRAINFUCK → JAVASCRIPT
 // =====================================================================
 
@@ -3279,7 +2895,6 @@ function loadFromHash() {
         outputHistory = [];
         outputHistoryCounter = 0;
 
-        // Язык: применяем последним, чтобы все переводы применились
         const desiredLang = state.lang === 'ru' ? 'ru' : 'en';
         switchLanguage(desiredLang);
 
@@ -3336,18 +2951,12 @@ window.onload = function() {
 
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closeAsciiEditor(); closeNameEditor(); closeBfGenerator(); }
+        if (e.key === 'Escape') { closeAsciiEditor(); closeNameEditor(); }
     });
     const overlay = document.getElementById('asciiEditorOverlay');
     if (overlay) {
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeAsciiEditor();
-        });
-    }
-    const bfGenOverlay = document.getElementById('bfGenOverlay');
-    if (bfGenOverlay) {
-        bfGenOverlay.addEventListener('click', function(e) {
-            if (e.target === bfGenOverlay) closeBfGenerator();
         });
     }
     document.addEventListener('click', function(e) {
