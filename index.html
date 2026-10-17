@@ -1496,7 +1496,7 @@ const translations = {
         eoiZero: "Set code:", eoiUnchanged: "Leave unchanged",
         examples: {
             hello: "Hello World!", add: "Adding two digits (1+2)",
-            cat: "Cat program (Echo input)", sixseven: "SIXSEVEN",
+            cat: "Cat program (Echo input)",
             loopdoub: "Looping Doubler", thisurl: "URL of this site",
             logicn: "Logical AND", logicno: "Logical NOT",
             codeofsymb: "ASCII code of a char", len: "Length of input",
@@ -1550,7 +1550,6 @@ const translations = {
             hello: "Привет, мир! (Hello World)",
             add: "Сложение двух цифр (1+2)",
             cat: "Программа-эхо (Вывод ввода)",
-            sixseven: "SIXSEVEN",
             loopdoub: "Циклический удвоитель",
             thisurl: "URL этого сайта",
             logicn: "Логическое И", logicno: "Логическое НЕ",
@@ -1608,50 +1607,68 @@ let history = [];
 const bfkExamples = {
     hello: {
         code: "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
-        input: "Hello"
+        input: "Hello",
+        title: "The program prints 'Hello World!'"
     },
-    add: { code: ",>,[-<+>]++++++++[-<------>]<.", input: "12" },
-    cat: { code: ",[.,]", input: "Brainfuck" },
-    sixseven: {
-        code: "++++++++++[->++++++++<]>[->+>+>+>+>+>+<<<<<<]>+++.>-------.>++++++++.<<.>>>-----------.>++++++.<.>>--.",
-        input: "SIXSEVEN"
+    add: {
+        code: ",>,[-<+>]++++++++[-<------>]<.",
+        input: "12",
+        title: "The program adds two entered digits together, displaying their sum as one digit if the sum is less than 10"
     },
-    loopdoub: { code: ",[..,]", input: "Puk Puk" },
+    cat: {
+        code: ",[.,]",
+        input: "Brainfuck",
+        title: "The program displays user input"
+    },
+    loopdoub: {
+        code: ",[..,]",
+        input: "Puk Puk",
+        title: "The program prints the user's input, printing each character twice"
+    },
     thisurl: {
         code: "++++++++++[->++++++++++<]>++++.<+++[->++++<]>..----.+++.<+++[->-------------------<]>.-----------..<+++++++[->++++++++++<]>+.-------------.++.+++++++++.-----.+++.<+++[->-----<]>.+++++.-------.++++++++++++.+++.-------.++++++.-.<++++++++[->--------<]>.>++++++++++[->++++++++++<]>+++.++.+++++++++++.------------.+++++++++++++.<+++++[->----<]>+.<<.>>+++++++.++++++.<<+.>+++++[->---------<]>.<++++++[->++++++++<]>.<+++++[->---<]>--.++++++++.+++++.--------.<+++++[->+++<]>.<++++++[->---<]>.++++++++.<+++++++++++++++++[->--<]>.<++++++[->++++++<]>+.++++++.>++++++++++[->++++++++++<]>+.>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++[->++<]>.>++++++++[->++++++++++++++<]>.<<.<<.<<.>>.>>\nviktor_champion@mail.ru",
-        input: "https://viktorchampion.github.io/BrainfuckInterpreter"
+        input: "https://viktorchampion.github.io/BrainfuckInterpreter",
+        title: "The program displays a link to this site"
     },
     logicn: {
         code: ",>++++++++[-<------>],>++++++++[-<------>]>+>+<<<<[>[[-]+++++++[->+++++++<]>.>-<-<<[-]]]>>>[->[-]++++++++[-<++++++>]<.[-]]",
-        input: "11"
+        input: "11",
+        title: "The program reads 2 characters and prints 1 if the characters are non-zero, otherwise 0"
     },
     logicno: {
         code: ",>++++++++[-<------>]>+<<[[-]++++++[->++++++++<]>.[-]>-<<]>>[->+++++++[->+++++++<]>.[-]]",
-        input: "1"
+        input: "1",
+        title: "The program reads 2 characters and prints 1 if one or both characters are non-zero, otherwise 0"
     },
     codeofsymb: {
         code: "+>,[->+>>+<<<]>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<[>]>>>[-<+<<+>>>]<[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<[>]>>>[-<<<+>>>]<<<[>++++++++[-<++++++>]<.>++++++++[-<------>]<[->+<]]>[-<+>]<[->++++++++++[-<<-<---------->>>]<]<[>]<<<[>]>>>++++++++[-<++++++>]++++++++<.>[-<------>]<[->+<]>[-<+>]<[-<---------->]++++++++[-<++++++>]<.[-]<<[-]",
-        input: "A"
+        input: "A",
+        title: "The program prints the character code if it is up to 999"
     },
     len: {
         code: ">>,[>,]<[[-]+<]>[>]<[-<[<]<+>>[>]<]<[->+>>+<<<]+>>>[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<[>]>>>[-<+<<+>>>]<[-[-[-[-[-[-[-[-[-[->>+<<<]]]]]]]]]>]<<<[>]>>>[-<<<+>>>]<<<[>++++++++[-<++++++>]<.>++++++++[-<------>]<[->+>+<<]]>>[-<<<---------->>>]<<++++++++[-<++++++>]<.>++++++++[-<------>]>[-<++++++++++[-<<---------->>]>]<<[-<---------->]++++++++[-<++++++>]<.",
-        input: "Hello, World!"
+        input: "Hello, World!",
+        title: "The program prints the length of the input if it is up to 999"
     },
     bf2: {
         code: "[This Brainfuck supports the plus and dot commands. Anything other than a plus is a dot]\n>>>,[>,]<[<]>[<<<+>++++++++[->>-----<<]>>---[<<<->>.>[-]]<<<[>>+<<-]>>[->+<]>>]",
-        input: "+++++++++++++++++++++++++++++++++."
+        input: "+++++++++++++++++++++++++++++++++.",
+        title: "The program implements the simplest Brainfuck with two commands: '+', '.' Any other character other than + is perceived as a dot"
     },
     bf3: {
         code: "[This Brainfuck supports the plus, minus, and dot commands]\n>+>+>+>>>,[>,]<[<]>[<++++++++[->-----<]>---[<<<<<->>>>>[-<+>]]<[->+<]>--[<<<<->>>>[-<+>]]<[->+<]>-[<<<->>>[-]]<<<<<[->>>+<<<]>[->>-<<]>[->.<]>[->+<]+<+<+>>>>>]",
-        input: "++++++++++++++++++++++++++++++++.+.-.+.-----------------------..+++++++++++++++++++++++.-...+.-----------------------.++++++++++++++++++++++.+..."
+        input: "++++++++++++++++++++++++++++++++.+.-.+.-----------------------..+++++++++++++++++++++++.-...+.-----------------------.++++++++++++++++++++++.+...",
+        title: "The program implements Brainfuck, which supports 3 commands: '+', '-', '.'"
     },
     bf4: {
         code: "[This Brainfuck supports the plus, minus, comma, and dot commands. Input is written on the next line. Put \\n even if there is no input]\n>+>+>+>+>>>,----------[>,----------]<[<]>[<++++++++[->----<]>-[[-<+>]<<<<<<->>>>>>]<[->+<]>-[[-<+>]<<<->>>]<[->+<]>-[[-<+>]<<<<<->>>>>]<[->+<]>-[[-]<<<<->>>>]<<<<<<[->>>>+<<<<]>[->>>-<<<]>[->>.<<]>[->,<]>[->+<]+<+<+<+>>>>>>]",
-        input: ",.,.,.,.,.\nHello"
+        input: ",.,.,.,.,.\nHello",
+        title: "The program implements Brainfuck, which supports four commands: '+', '-', ',', '.'. Input must appear on a new line. A new line is added even if there is no input"
     },
     bf6: {
         code: "[This Brainfuck supports the plus, minus, comma, dot, < and > commands. There are 10 cells. Input is written on the next line. Put \\n even if there is no input. The memory here is looped]\n>>>>>>>>>>>>,----------[>>>>>>>>>>>>,----------]<<<<<<<<<<<<[<<<<<<<<<<<<]>>>>>>>>>>>>[<++++++++[->----<]<+>>-[[-<+>]<<->>]<[->+<]<[-<+>]+>>-[[-<+>]<<->>]<[->+<]<[-<,>]+>>-[[-<+>]<<->>]<[->+<]<[-<->]+>>-[[-<+>]<<->>]<[->+<]<[-<.>]+>>--------------[[-<+>]<<->>]<[->+<]<[-<<<<<<<<<<[->>>>>>>>>>>+<<<<<<<<<<<]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>[-<+>]>>[-<<+>>]<]+>>--[[-]<<->>]<<[-<[->>+<<]<[->+<]<[->+<]<[->+<]<[->+<]<[->+<]<[->+<]<[->+<]<[->+<]<[->+<]>>>>>>>>>>>[-<<<<<<<<<<<+>>>>>>>>>>>]<]<<<<<<<<<<[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>[->>>>>>>>>>>>+<<<<<<<<<<<<]>>>>>>>>>>>>>>>]",
-        input: ",>,>,>,>,.<.<.<.<.\nolleH"
+        input: ",>,>,>,>,.<.<.<.<.\nolleH",
+        title: "The program implements Brainfuck, which supports four commands: '+', '-', ',', '.', '<', '>'. Memory is looped. Input must be on a new line. A new line is inserted even if there is no input"
     }
 };
 
@@ -2379,21 +2396,20 @@ function updateExamplesDropdown() {
     const select = document.getElementById('exampleSelect');
     const selectedValue = select.value;
     const t = translations[currentLang];
-    select.innerHTML = '<option value="">' + t.examplePlaceholder + '</option>';
-    select.innerHTML += '<option value="hello">' + t.examples.hello + '</option>';
-    select.innerHTML += '<option value="add">' + t.examples.add + '</option>';
-    select.innerHTML += '<option value="cat">' + t.examples.cat + '</option>';
-    select.innerHTML += '<option value="sixseven">' + t.examples.sixseven + '</option>';
-    select.innerHTML += '<option value="loopdoub">' + t.examples.loopdoub + '</option>';
-    select.innerHTML += '<option value="thisurl">' + t.examples.thisurl + '</option>';
-    select.innerHTML += '<option value="logicn">' + t.examples.logicn + '</option>';
-    select.innerHTML += '<option value="logicno">' + t.examples.logicno + '</option>';
-    select.innerHTML += '<option value="codeofsymb">' + t.examples.codeofsymb + '</option>';
-    select.innerHTML += '<option value="len">' + t.examples.len + '</option>';
-    select.innerHTML += '<option value="bf2">' + t.examples.bf2 + '</option>';
-    select.innerHTML += '<option value="bf3">' + t.examples.bf3 + '</option>';
-    select.innerHTML += '<option value="bf4">' + t.examples.bf4 + '</option>';
-    select.innerHTML += '<option value="bf6">' + t.examples.bf6 + '</option>';
+    select.innerHTML = `<option value="" title="Placeholder">` + t.examplePlaceholder + `</option>`;
+    select.innerHTML += `<option value="hello" title="${bfkExamples.hello.title}">` + t.examples.hello + `</option>`;
+    select.innerHTML += `<option value="add" title="${bfkExamples.add.title}">` + t.examples.add + `</option>`;
+    select.innerHTML += `<option value="cat" title="${bfkExamples.cat.title}">` + t.examples.cat + `</option>`;
+    select.innerHTML += `<option value="loopdoub" title="${bfkExamples.loopdoub.title}">` + t.examples.loopdoub + `</option>`;
+    select.innerHTML += `<option value="thisurl" title="${bfkExamples.thisurl.title}">` + t.examples.thisurl + `</option>`;
+    select.innerHTML += `<option value="logicn" title="${bfkExamples.logicn.title}">` + t.examples.logicn + `</option>`;
+    select.innerHTML += `<option value="logicno" title="${bfkExamples.logicno.title}">` + t.examples.logicno + `</option>`;
+    select.innerHTML += `<option value="codeofsymb" title="${bfkExamples.codeofsymb.title}">` + t.examples.codeofsymb + `</option>`;
+    select.innerHTML += `<option value="len" title="${bfkExamples.len.title}">` + t.examples.len + `</option>`;
+    select.innerHTML += `<option value="bf2" title="${bfkExamples.bf2.title}">` + t.examples.bf2 + `</option>`;
+    select.innerHTML += `<option value="bf3" title="${bfkExamples.bf3.title}">` + t.examples.bf3 + `</option>`;
+    select.innerHTML += `<option value="bf4" title="${bfkExamples.bf4.title}">` + t.examples.bf4 + `</option>`;
+    select.innerHTML += `<option value="bf6" title="${bfkExamples.bf6.title}">` + t.examples.bf6 + `</option>`;
     select.value = selectedValue;
 }
 
